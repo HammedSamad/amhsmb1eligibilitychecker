@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMHS Directorate of Studies | Admin Backend</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        amhs: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            200: '#a7f3d0',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                        }
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 8px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        @media print {
+            body {
+                background-color: #ffffff !important;
+                color: #000000 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .no-print { display: none !important; }
+            .print-container {
+                box-shadow: none !important;
+                border: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                max-width: 100% !important;
+            }
+            .print-break-avoid {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            @page { margin: 10mm; size: A4 portrait; }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col text-slate-800 antialiased selection:bg-amhs-200 selection:text-amhs-900">
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none no-print"></div>
+
+    <!-- Confirmation Modal -->
+    <div id="custom-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 no-print">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-100">
+            <div class="flex items-start gap-4">
+                <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-amhs-100 text-amhs-700">
+                    <i id="modal-icon" class="fa-solid fa-circle-info text-xl"></i>
+                </div>
+                <div class="flex-1">
+                    <h3 id="modal-title" class="text-lg font-bold text-slate-900">Confirm Action</h3>
+                    <p id="modal-message" class="text-sm text-slate-600 mt-1.5 leading-relaxed"></p>
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end gap-3">
+                <button id="modal-cancel-btn" type="button" class="px-4 py-2.5 text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition">Cancel</button>
+                <button id="modal-confirm-btn" type="button" class="px-4 py-2.5 text-sm font-semibold text-white bg-amhs-700 hover:bg-amhs-800 rounded-xl shadow-sm transition">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add / Edit Student Modal -->
+    <div id="student-editor-modal" class="fixed inset-0 z-40 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-3 sm:p-6 no-print">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 bg-amhs-800 text-white flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center">
+                        <i class="fa-solid fa-user-pen"></i>
+                    </div>
+                    <div>
+                        <h3 id="editor-modal-title" class="text-lg font-bold leading-tight">Add New Student</h3>
+                        <p class="text-xs text-emerald-100">Leave unwritten incourses blank; eligibility recalculates automatically.</p>
+                    </div>
+                </div>
+                <button id="close-editor-modal-btn" type="button" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition" aria-label="Close modal">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form id="student-editor-form" class="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
+                <input type="hidden" id="edit-student-id">
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-amhs-800 mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-id-badge"></i> Student Credentials
+                    </h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label for="edit-name" class="block text-xs font-semibold text-slate-600 mb-1">Full Name (SURNAME, First Middle) *</label>
+                            <input type="text" id="edit-name" required placeholder="e.g. ABDULLAHI, Ridwan O."
+                                class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amhs-500">
+                        </div>
+                        <div>
+                            <label for="edit-matric" class="block text-xs font-semibold text-slate-600 mb-1">Matric Number *</label>
+                            <input type="text" id="edit-matric" required placeholder="e.g. 2023/1001"
+                                class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm uppercase focus:outline-none focus:ring-2 focus:ring-amhs-500">
+                        </div>
+                        <div>
+                            <label for="edit-password" class="block text-xs font-semibold text-slate-600 mb-1">Assigned Password *</label>
+                            <div class="flex gap-2">
+                                <input type="text" id="edit-password" required placeholder="e.g. AMHS1001"
+                                    class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-amhs-500">
+                                <button type="button" id="generate-pwd-btn" title="Auto-generate password"
+                                    class="px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-semibold transition shrink-0">
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="editor-courses-container" class="space-y-5"></div>
+            </form>
+
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3 shrink-0">
+                <p class="text-xs text-slate-500 hidden sm:block">Valid scores: 0 – 100. Blank = Not Yet Written.</p>
+                <div class="flex items-center gap-3 ml-auto">
+                    <button type="button" id="cancel-editor-modal-btn" class="px-4 py-2.5 text-sm font-semibold text-slate-600 bg-white border border-slate-300 hover:bg-slate-100 rounded-xl transition">Cancel</button>
+                    <button type="submit" form="student-editor-form" class="px-5 py-2.5 text-sm font-semibold text-white bg-amhs-700 hover:bg-amhs-800 rounded-xl shadow-sm transition flex items-center gap-2">
+                        <i class="fa-solid fa-floppy-disk"></i> Save & Publish
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application Root -->
+    <div id="app" class="flex-1 flex flex-col"></div>
+
+    <!-- Required Global Footer Across All Pages -->
+    <footer class="w-full bg-white border-t border-slate-200 py-4 px-4 mt-auto">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
+            <div class="flex items-center justify-center sm:justify-start gap-2 text-xs sm:text-sm font-semibold text-amhs-800">
+                <i class="fa-solid fa-graduation-cap text-amhs-600"></i>
+                <span>Powered by the Office of the Directorate of Studies, AMHS, 2026/2027.</span>
+            </div>
+            <div class="flex flex-wrap items-center justify-center gap-3 text-xs text-slate-400 no-print">
+                <span id="sync-status-badge" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500 font-semibold">
+                    <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> Connecting...
+                </span>
+                <span id="footer-record-count">0 Student Records</span>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc, deleteDoc, onSnapshot, collection, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // =========================================================================
+        // 1. SHARED FIREBASE CONFIGURATION (PASTE YOUR FIREBASE KEYS HERE)
+        //    Must match the exact same FIREBASE_CONFIG in index.html
+        // =========================================================================
+        const FIREBASE_CONFIG = {
+            apiKey: "PASTE_YOUR_API_KEY_HERE",
+            authDomain: "PASTE_YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "PASTE_YOUR_PROJECT_ID",
+            storageBucket: "PASTE_YOUR_PROJECT_ID.firebasestorage.app",
+            messagingSenderId: "PASTE_YOUR_SENDER_ID",
+            appId: "PASTE_YOUR_APP_ID"
+        };
+
+        const LOCAL_STORAGE_KEY = 'amhs_portal_students_v1';
+        const LOCAL_CONFIG_KEY = 'amhs_portal_config_v1';
+        const PASS_MARK = 45;
+
+        // =========================================================================
+        // 2. CURRICULUM STRUCTURE (SHARED WITH STUDENT PAGE)
+        // =========================================================================
+        const DEPARTMENTS = [
+            {
+                id: 'anatomy',
+                name: 'ANATOMY',
+                subtitle: 'Gross Anatomy, Histology & Embryology',
+                badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+                headerBg: 'bg-emerald-700',
+                icon: 'fa-bone',
+                courses: [
+                    { key: 'ana_limbs', code: 'A', label: 'UPPER & LOWER LIMBS' },
+                    { key: 'ana_thorax', code: 'B', label: 'THORAX' },
+                    { key: 'ana_abdomen', code: 'C', label: 'ABDOMEN' },
+                    { key: 'ana_pelvis', code: 'D', label: 'PELVIS AND PERINEUM' },
+                    { key: 'ana_head_neck', code: 'E', label: 'HEAD AND NECK' },
+                    { key: 'ana_neuro', code: 'F', label: 'NEUROANATOMY' },
+                    { key: 'ana_gen_histo', code: 'G', label: 'GENERAL HISTOLOGY/EMBRYOLOGY' },
+                    { key: 'ana_sys_histo', code: 'H', label: 'SYSTEMIC HISTOLOGY/EMBRYOLOGY' }
+                ]
+            },
+            {
+                id: 'biochemistry',
+                name: 'MEDICAL BIOCHEMISTRY',
+                subtitle: 'Pre-Clinical Biochemistry & OSPE',
+                badgeClass: 'bg-sky-50 text-sky-800 border-sky-200',
+                headerBg: 'bg-sky-700',
+                icon: 'fa-flask-vial',
+                courses: [
+                    { key: 'bch_first', code: 'A', label: 'FIRST INCOURSE' },
+                    { key: 'bch_second', code: 'B', label: 'SECOND INCOURSE' },
+                    { key: 'bch_third', code: 'C', label: 'THIRD INCOURSE' },
+                    { key: 'bch_fourth', code: 'D', label: 'FOURTH INCOURSE' },
+                    { key: 'bch_ospe', code: 'E', label: 'PRACTICAL AND OSPE' }
+                ]
+            },
+            {
+                id: 'physiology',
+                name: 'PHYSIOLOGY',
+                subtitle: 'Systemic & Neurophysiology',
+                badgeClass: 'bg-amber-50 text-amber-800 border-amber-200',
+                headerBg: 'bg-amber-600',
+                icon: 'fa-heart-pulse',
+                courses: [
+                    { key: 'phy_gen_nm', code: 'A', label: 'GENERAL PHYSIOLOGY, NERVE AND MUSCLE' },
+                    { key: 'phy_blood_cvs', code: 'B', label: 'BLOOD AND CVS' },
+                    { key: 'phy_resp_renal', code: 'C', label: 'RESPIRATORY & RENAL PHYSIOLOGY' },
+                    { key: 'phy_git', code: 'D', label: 'GIT' },
+                    { key: 'phy_endo_repro', code: 'E', label: 'ENDOCRINOLOGY & REPRODUCTIVE PHYSIOLOGY' },
+                    { key: 'phy_neuro', code: 'F', label: 'NEUROPHYSIOLOGY' }
+                ]
+            }
+        ];
+
+        const ALL_COURSES = DEPARTMENTS.flatMap(dept =>
+            dept.courses.map(c => ({ ...c, deptId: dept.id, deptName: dept.name }))
+        );
+
+        function createEmptyScores() {
+            const obj = {};
+            ALL_COURSES.forEach(c => { obj[c.key] = null; });
+            return obj;
+        }
+
+        // =========================================================================
+        // 3. STATE & SHARED BACKEND CONNECTION
+        // =========================================================================
+        const isFirebaseConfigured = Boolean(
+            FIREBASE_CONFIG.apiKey &&
+            !FIREBASE_CONFIG.apiKey.includes('PASTE_YOUR_') &&
+            FIREBASE_CONFIG.projectId &&
+            !FIREBASE_CONFIG.projectId.includes('PASTE_YOUR_')
+        );
+
+        let db = null;
+
+        const state = {
+            view: 'admin-login', // 'admin-login' | 'admin' | 'preview'
+            isAdminAuthenticated: false,
+            adminPasscode: 'AMHS-DOS-2026',
+            students: [],
+            previewStudentId: null,
+            // Admin UI controls
+            adminTab: 'roster', // 'roster' | 'bulk-score' | 'csv-import'
+            searchQuery: '',
+            filterStatus: 'all',
+            currentPage: 1,
+            pageSize: 25,
+            bulkSelectedDept: 'anatomy',
+            bulkSelectedCourse: 'ana_limbs',
+            bulkSearchQuery: '',
+            bulkPage: 1,
+            showPasswords: false
+        };
+
+        function updateSyncBadge(mode) {
+            const badge = document.getElementById('sync-status-badge');
+            if (!badge) return;
+            if (mode === 'cloud') {
+                badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Cloud Database Live';
+            } else if (mode === 'saving') {
+                badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200 font-semibold';
+                badge.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-[10px]"></i> Syncing...';
+            } else {
+                badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-semibold';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span> Local Test Mode';
+            }
+        }
+
+        function saveLocalStudents() {
+            try {
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state.students));
+            } catch (err) {
+                console.error('Local save error:', err);
+            }
+        }
+
+        function loadLocalData() {
+            try {
+                const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+                if (raw) {
+                    state.students = JSON.parse(raw);
+                    state.students.sort((a, b) => a.matric.localeCompare(b.matric));
+                }
+                const cfgRaw = localStorage.getItem(LOCAL_CONFIG_KEY);
+                if (cfgRaw) {
+                    const cfg = JSON.parse(cfgRaw);
+                    if (cfg.adminPasscode) state.adminPasscode = cfg.adminPasscode;
+                }
+            } catch (err) {
+                console.error('Local load error:', err);
+            }
+        }
+
+        async function initBackend() {
+            if (!isFirebaseConfigured) {
+                loadLocalData();
+                updateSyncBadge('local');
+                render();
+                return;
+            }
+
+            try {
+                const app = initializeApp(FIREBASE_CONFIG);
+                db = getFirestore(app);
+                updateSyncBadge('cloud');
+
+                // Load or initialize admin config
+                const cfgRef = doc(db, 'amhs_config', 'settings');
+                const cfgSnap = await getDoc(cfgRef);
+                if (cfgSnap.exists() && cfgSnap.data().adminPasscode) {
+                    state.adminPasscode = cfgSnap.data().adminPasscode;
+                }
+
+                // Live listener for all students
+                onSnapshot(
+                    collection(db, 'amhs_students'),
+                    (querySnap) => {
+                        const fetched = [];
+                        querySnap.forEach((d) => {
+                            const data = d.data();
+                            fetched.push({
+                                id: d.id,
+                                name: data.name || '',
+                                matric: data.matric || '',
+                                password: data.password || '',
+                                scores: { ...createEmptyScores(), ...(data.scores || {}) },
+                                updatedAt: data.updatedAt || ''
+                            });
+                        });
+                        fetched.sort((a, b) => a.matric.localeCompare(b.matric));
+                        state.students = fetched;
+                        updateSyncBadge('cloud');
+
+                        const activeEl = document.activeElement;
+                        const isTypingBulk = activeEl && activeEl.classList.contains('bulk-score-input');
+                        if (!isTypingBulk) {
+                            render();
+                        } else {
+                            updateFooterCount();
+                        }
+                    },
+                    (err) => {
+                        console.error('Firestore sync error:', err);
+                        showToast('Co
