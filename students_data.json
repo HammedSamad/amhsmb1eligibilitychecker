@@ -1,1 +1,30 @@
-[]
+[
+  {
+    "id": "STU_0001",
+    "name": "Muktar Ibrahim",
+    "matric": "0001",
+    "password": "amhs01",
+    "scores": {
+      "ana_limbs": 65,
+      "ana_thorax": 49,
+      "ana_abdomen": 65,
+      "ana_pelvis": 58,
+      "ana_head_neck": null,
+      "ana_neuro": null,
+      "ana_gen_histo": 83,
+      "ana_sys_histo": 47,
+      "bch_first": 65,
+      "bch_second": 79,
+      "bch_third": 58,
+      "bch_fourth": null,
+      "bch_ospe": null,
+      "phy_gen_nm": 80,
+      "phy_blood_cvs": 56,
+      "phy_resp_renal": null,
+      "phy_git": null,
+      "phy_endo_repro": null,
+      "phy_neuro": null
+    },
+    "updatedAt": "2026-11-24"
+  }
+]
