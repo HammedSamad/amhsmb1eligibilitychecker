@@ -266,6 +266,7 @@
             const GH_CONFIG_KEY = 'amhs_github_sync_config_v1';
             const DEFAULT_ADMIN_PASSCODE = 'ADMIN';
             const PASS_MARK = 45;
+            const INCOURSE_PASS_MARK = 50;
 
             const DEPARTMENTS = [
                 {
@@ -1162,7 +1163,7 @@
                     const rowsHTML = dept.courses.map(function (c) {
                         const score = (student.scores || {})[c.key];
                         const hasScore = score !== null && score !== undefined && score !== '';
-                        const cls = hasScore ? (Number(score) >= PASS_MARK ? 'text-slate-900' : 'text-rose-600') : 'text-slate-400';
+                        const cls = hasScore ? (Number(score) >= INCOURSE_PASS_MARK ? 'text-slate-900' : 'text-rose-600') : 'text-slate-400';
                         return '<tr>' +
                             '<td class="py-2 px-4 font-bold text-slate-400 text-xs">' + c.code + '.</td>' +
                             '<td class="py-2 px-4 font-semibold text-slate-800 text-xs sm:text-sm">' + c.label + '</td>' +

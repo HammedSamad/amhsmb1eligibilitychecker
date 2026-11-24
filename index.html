@@ -101,6 +101,7 @@
             const DATA_FILE_URL = 'students_data.json';
             const LOCAL_STORAGE_KEY = 'amhs_portal_students_v2';
             const PASS_MARK = 45;
+            const INCOURSE_PASS_MARK = 50
 
             const DEPARTMENTS = [
                 {
@@ -570,12 +571,13 @@
                         const score = (student.scores || {})[c.key];
                         const hasScore = score !== null && score !== undefined && score !== '';
                         let remarkHTML = '<span class="text-xs font-medium text-slate-400 italic">Not Yet Written</span>';
-                        if (hasScore) {
-                            remarkHTML = Number(score) >= PASS_MARK
-                                ? '<span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">Pass (≥45%)</span>'
-                                : '<span class="text-xs font-bold text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-200">Below 45%</span>';
+                                               if (hasScore) {
+                            remarkHTML = Number(score) >= INCOURSE_PASS_MARK
+                                ? '<span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">Pass (≥50%)</span>'
+                                : '<span class="text-xs font-bold text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-200">Fail (&lt;50%)</span>';
                         }
-                        const scoreColor = hasScore ? (Number(score) >= PASS_MARK ? 'text-slate-900' : 'text-rose-600') : 'text-slate-400';
+                        const scoreColor = hasScore ? (Number(score) >= INCOURSE_PASS_MARK ? 'text-slate-900' : 'text-rose-600') : 'text-slate-400';
+
                         return `
                         <tr class="hover:bg-slate-50/70">
                             <td class="py-2.5 px-4 font-bold text-slate-400 text-xs">${c.code}.</td>
