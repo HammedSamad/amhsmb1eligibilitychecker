@@ -1400,34 +1400,6 @@
     "updatedAt": "2026-11-24"
   },
   {
-    "id": "STU_2023_1050",
-    "name": "KAZEEM, Omolara Funmilayo",
-    "matric": "2023/1050",
-    "password": "AMHS1050",
-    "scores": {
-      "ana_limbs": 78,
-      "ana_thorax": 77,
-      "ana_abdomen": null,
-      "ana_pelvis": null,
-      "ana_head_neck": null,
-      "ana_neuro": null,
-      "ana_gen_histo": 80,
-      "ana_sys_histo": null,
-      "bch_first": 77,
-      "bch_second": 69,
-      "bch_third": null,
-      "bch_fourth": null,
-      "bch_ospe": 83,
-      "phy_gen_nm": 68,
-      "phy_blood_cvs": 75,
-      "phy_resp_renal": null,
-      "phy_git": null,
-      "phy_endo_repro": null,
-      "phy_neuro": null
-    },
-    "updatedAt": "2026-11-24"
-  },
-  {
     "id": "STU_2023_1051",
     "name": "AWOLOWO, Samuel Mayowa",
     "matric": "2023/1051",
