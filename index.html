@@ -170,12 +170,16 @@
             // =========================================================================
             // 2. APPLICATION STATE & DATA LOADING
             // =========================================================================
+            const STUDENT_SESSION_KEY = 'amhs_student_session_id_v1';
+            const savedStudentId = sessionStorage.getItem(STUDENT_SESSION_KEY);
+
             const state = {
-                view: 'login', // 'login' | 'student'
+                view: savedStudentId ? 'student' : 'login', // 'login' | 'student'
                 students: [],
-                currentStudentId: null,
+                currentStudentId: savedStudentId || null,
                 isLoading: true
             };
+
 
             function updateSyncBadge(mode) {
                 const badge = document.getElementById('sync-status-badge');
@@ -503,12 +507,18 @@
                 </div>`;
             }
 
-            function renderStudentView() {
+                        function renderStudentView() {
+                if (state.isLoading) {
+                    return '<div class="flex-1 flex items-center justify-center p-8"><div class="text-center text-slate-500"><i class="fa-solid fa-spinner fa-spin text-3xl text-amhs-700 mb-3"></i><p class="text-sm font-semibold">Restoring your session...</p></div></div>';
+                }
                 const student = state.students.find(function (s) { return s.id === state.currentStudentId; });
                 if (!student) {
+                    sessionStorage.removeItem(STUDENT_SESSION_KEY);
+                    state.currentStudentId = null;
                     state.view = 'login';
                     return renderLoginView();
                 }
+
 
                 const evalData = evaluateStudent(student);
                 const generatedDate = new Date().toLocaleDateString('en-NG', {
@@ -730,6 +740,7 @@
                         }
                         state.currentStudentId = match.id;
                         state.view = 'student';
+                        sessionStorage.setItem(STUDENT_SESSION_KEY, match.id);
                         showToast('Welcome, ' + match.name + '!', 'success');
                         render();
                     };
@@ -745,6 +756,7 @@
                     logoutBtn.onclick = function () {
                         state.currentStudentId = null;
                         state.view = 'login';
+                        sessionStorage.removeItem(STUDENT_SESSION_KEY);
                         render();
                     };
                 }

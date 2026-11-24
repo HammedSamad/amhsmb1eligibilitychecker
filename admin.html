@@ -341,9 +341,12 @@
             // =========================================================================
             // 2. APPLICATION STATE & GITHUB AUTO-SYNC ENGINE
             // =========================================================================
+                        const ADMIN_SESSION_KEY = 'amhs_admin_logged_in_v1';
+            const savedAdminSession = sessionStorage.getItem(ADMIN_SESSION_KEY) === 'true';
+
             const state = {
-                view: 'admin-login', // 'admin-login' | 'admin' | 'preview'
-                isAdminAuthenticated: false,
+                view: savedAdminSession ? 'admin' : 'admin-login', // 'admin-login' | 'admin' | 'preview'
+                isAdminAuthenticated: savedAdminSession,
                 adminPasscode: localStorage.getItem(LOCAL_PASSCODE_KEY) || DEFAULT_ADMIN_PASSCODE,
                 students: [],
                 previewStudentId: null,
@@ -1721,6 +1724,7 @@
                         }
                         state.isAdminAuthenticated = true;
                         state.view = 'admin';
+                           sessionStorage.setItem(ADMIN_SESSION_KEY, 'true');
                         showToast('Signed in to Directorate Admin Backend.', 'success');
                         render();
                         loadLatestDataAutomatically();
@@ -1744,6 +1748,7 @@
                     logoutBtn.onclick = function () {
                         state.isAdminAuthenticated = false;
                         state.view = 'admin-login';
+                        sessionStorage.removeItem(ADMIN_SESSION_KEY);
                         render();
                     };
                 }
