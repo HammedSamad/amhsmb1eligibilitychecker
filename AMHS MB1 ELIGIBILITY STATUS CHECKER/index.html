@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AMHS 1st MB Eligibility Portal | Directorate of Studies</title>
+    <title>AMHS 1st MB Eligibility Portal | Student Login</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Inter -->
@@ -18,7 +17,7 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
+                        sans: ['Inter', 'sans-serif']
                     },
                     colors: {
                         amhs: {
@@ -29,7 +28,7 @@
                             600: '#059669',
                             700: '#047857',
                             800: '#065f46',
-                            900: '#064e3b',
+                            900: '#064e3b'
                         }
                     }
                 }
@@ -41,21 +40,6 @@
             font-family: 'Inter', sans-serif;
             background-color: #f8fafc;
         }
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 8px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 8px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
         @media print {
             body {
                 background-color: #ffffff !important;
@@ -65,9 +49,6 @@
             }
             .no-print {
                 display: none !important;
-            }
-            .print-only {
-                display: block !important;
             }
             .print-container {
                 box-shadow: none !important;
@@ -85,199 +66,40 @@
                 size: A4 portrait;
             }
         }
-        .print-only {
-            display: none;
-        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col text-slate-800 antialiased selection:bg-amhs-200 selection:text-amhs-900">
 
-    <!-- ==================== TOAST NOTIFICATION CONTAINER ==================== -->
+    <!-- Toast Notification Container -->
     <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none no-print"></div>
 
-    <!-- ==================== CUSTOM CONFIRMATION MODAL ==================== -->
-    <div id="custom-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 no-print">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-100">
-            <div class="flex items-start gap-4">
-                <div id="modal-icon-wrapper" class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-amhs-100 text-amhs-700">
-                    <i id="modal-icon" class="fa-solid fa-circle-info text-xl"></i>
-                </div>
-                <div class="flex-1">
-                    <h3 id="modal-title" class="text-lg font-bold text-slate-900">Notice</h3>
-                    <p id="modal-message" class="text-sm text-slate-600 mt-1.5 leading-relaxed"></p>
-                </div>
-            </div>
-            <div class="mt-6 flex justify-end gap-3">
-                <button id="modal-cancel-btn" type="button" class="px-4 py-2.5 text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition">Cancel</button>
-                <button id="modal-confirm-btn" type="button" class="px-4 py-2.5 text-sm font-semibold text-white bg-amhs-700 hover:bg-amhs-800 rounded-xl shadow-sm transition">Confirm</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ==================== STUDENT ADD / EDIT MODAL (ADMIN) ==================== -->
-    <div id="student-editor-modal" class="fixed inset-0 z-40 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-3 sm:p-6 no-print">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col border border-slate-200 overflow-hidden">
-            <div class="px-6 py-4 bg-amhs-800 text-white flex items-center justify-between shrink-0">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center">
-                        <i class="fa-solid fa-user-pen"></i>
-                    </div>
-                    <div>
-                        <h3 id="editor-modal-title" class="text-lg font-bold leading-tight">Add New Student</h3>
-                        <p class="text-xs text-emerald-100">Leave unwritten incourses blank; eligibility updates automatically.</p>
-                    </div>
-                </div>
-                <button id="close-editor-modal-btn" type="button" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition" aria-label="Close modal">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <form id="student-editor-form" class="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
-                <input type="hidden" id="edit-student-id">
-
-                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5">
-                    <h4 class="text-xs font-bold uppercase tracking-wider text-amhs-800 mb-3 flex items-center gap-2">
-                        <i class="fa-solid fa-id-badge"></i> Student Credentials
-                    </h4>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div>
-                            <label for="edit-name" class="block text-xs font-semibold text-slate-600 mb-1">Full Name (SURNAME, First Middle) *</label>
-                            <input type="text" id="edit-name" required placeholder="e.g. ABDULLAHI, Ridwan O."
-                                class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amhs-500">
-                        </div>
-                        <div>
-                            <label for="edit-matric" class="block text-xs font-semibold text-slate-600 mb-1">Matric Number *</label>
-                            <input type="text" id="edit-matric" required placeholder="e.g. 2023/1001"
-                                class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm uppercase focus:outline-none focus:ring-2 focus:ring-amhs-500">
-                        </div>
-                        <div>
-                            <label for="edit-password" class="block text-xs font-semibold text-slate-600 mb-1">Assigned Password *</label>
-                            <div class="flex gap-2">
-                                <input type="text" id="edit-password" required placeholder="e.g. AMHS1001"
-                                    class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-amhs-500">
-                                <button type="button" id="generate-pwd-btn" title="Auto-generate password"
-                                    class="px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-semibold transition shrink-0">
-                                    <i class="fa-solid fa-wand-magic-sparkles"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="editor-courses-container" class="space-y-5"></div>
-            </form>
-
-            <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3 shrink-0">
-                <p class="text-xs text-slate-500 hidden sm:block">Valid scores: 0 – 100. Blank = Not Yet Written.</p>
-                <div class="flex items-center gap-3 ml-auto">
-                    <button type="button" id="cancel-editor-modal-btn" class="px-4 py-2.5 text-sm font-semibold text-slate-600 bg-white border border-slate-300 hover:bg-slate-100 rounded-xl transition">Cancel</button>
-                    <button type="submit" form="student-editor-form" class="px-5 py-2.5 text-sm font-semibold text-white bg-amhs-700 hover:bg-amhs-800 rounded-xl shadow-sm transition flex items-center gap-2">
-                        <i class="fa-solid fa-floppy-disk"></i> Save Student Record
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ==================== MAIN APPLICATION ROOT ==================== -->
+    <!-- Main Application Root -->
     <div id="app" class="flex-1 flex flex-col"></div>
 
-    <!-- ==================== GLOBAL FOOTER (REQUIRED ON ALL PAGES) ==================== -->
+    <!-- Required Global Footer Across All Pages -->
     <footer class="w-full bg-white border-t border-slate-200 py-4 px-4 mt-auto">
-        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
+        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
             <div class="flex items-center justify-center sm:justify-start gap-2 text-xs sm:text-sm font-semibold text-amhs-800">
                 <i class="fa-solid fa-graduation-cap text-amhs-600"></i>
                 <span>Powered by the Office of the Directorate of Studies, AMHS, 2026/2027.</span>
             </div>
-            <div class="flex flex-wrap items-center justify-center gap-3 text-xs text-slate-400 no-print">
+            <div class="flex items-center justify-center gap-2 text-xs text-slate-400 no-print">
                 <span id="sync-status-badge" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500 font-semibold">
-                    <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> Connecting...
+                    <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> Loading Portal...
                 </span>
-                <span id="footer-record-count">AMHS Pre-Clinical Portal</span>
-                <span class="text-slate-300">|</span>
-                <a id="portal-route-link" href="#admin" class="text-slate-400 hover:text-amhs-700 font-medium transition">Directorate Portal</a>
             </div>
         </div>
     </footer>
 
-    <!-- ==================== APPLICATION LOGIC & SHARED CLOUD BACKEND ==================== -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, deleteDoc, onSnapshot, collection, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
+    <script>
         (function () {
             'use strict';
 
             // =========================================================================
-            // 0. SHARED CLOUD BACKEND CONFIGURATION (FIRESTORE + LOCAL STORAGE FALLBACK)
+            // 1. CONFIGURATION & CURRICULUM STRUCTURE
             // =========================================================================
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'amhs-eligibility-portal';
-            const LOCAL_STUDENTS_KEY = 'amhs_singlefile_students_v1';
-            const LOCAL_PASSCODE_KEY = 'amhs_singlefile_passcode_v1';
-            let db = null;
-            let auth = null;
-            let currentUser = null;
-            let isCloudConnected = false;
-
-            function getStudentsCollectionRef() {
-                return collection(db, 'artifacts', appId, 'public', 'data', 'amhs_students');
-            }
-
-            function getStudentDocRef(studentId) {
-                return doc(db, 'artifacts', appId, 'public', 'data', 'amhs_students', studentId);
-            }
-
-            function getConfigDocRef() {
-                return doc(db, 'artifacts', appId, 'public', 'data', 'amhs_config', 'settings');
-            }
-
-            function updateSyncBadge(status) {
-                const badge = document.getElementById('sync-status-badge');
-                if (!badge) return;
-                if (status === 'live') {
-                    badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold';
-                    badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Shared Backend Live';
-                } else if (status === 'saving') {
-                    badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200 font-semibold';
-                    badge.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-[10px]"></i> Syncing...';
-                } else if (status === 'offline') {
-                    badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-semibold';
-                    badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span> Local Mode';
-                } else {
-                    badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500 font-semibold';
-                    badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> Connecting...';
-                }
-            }
-
-            function saveToLocalStorage() {
-                try {
-                    localStorage.setItem(LOCAL_STUDENTS_KEY, JSON.stringify(state.students));
-                    localStorage.setItem(LOCAL_PASSCODE_KEY, state.adminPasscode);
-                } catch (err) {
-                    console.error('LocalStorage save failed:', err);
-                }
-            }
-
-            function loadFromLocalStorage() {
-                try {
-                    const savedStudents = localStorage.getItem(LOCAL_STUDENTS_KEY);
-                    if (savedStudents) {
-                        const parsed = JSON.parse(savedStudents);
-                        if (Array.isArray(parsed) && parsed.length > 0) {
-                            state.students = parsed;
-                        }
-                    }
-                    const savedCode = localStorage.getItem(LOCAL_PASSCODE_KEY);
-                    if (savedCode) state.adminPasscode = savedCode;
-                } catch (err) {
-                    console.error('LocalStorage load failed:', err);
-                }
-            }
-
-            // =========================================================================
-            // 1. CURRICULUM & ELIGIBILITY CONFIGURATION
-            // =========================================================================
+            const DATA_FILE_URL = 'students_data.json';
+            const LOCAL_STORAGE_KEY = 'amhs_portal_students_v2';
             const PASS_MARK = 45;
 
             const DEPARTMENTS = [
@@ -332,29 +154,611 @@
                 }
             ];
 
-            const ALL_COURSES = DEPARTMENTS.flatMap(dept =>
-                dept.courses.map(c => ({ ...c, deptId: dept.id, deptName: dept.name }))
-            );
+            const ALL_COURSES = DEPARTMENTS.reduce(function (acc, dept) {
+                dept.courses.forEach(function (c) {
+                    acc.push({
+                        key: c.key,
+                        code: c.code,
+                        label: c.label,
+                        deptId: dept.id,
+                        deptName: dept.name
+                    });
+                });
+                return acc;
+            }, []);
 
-            function createEmptyScores() {
-                const obj = {};
-                ALL_COURSES.forEach(c => { obj[c.key] = null; });
-                return obj;
+            // =========================================================================
+            // 2. APPLICATION STATE & DATA LOADING
+            // =========================================================================
+            const state = {
+                view: 'login', // 'login' | 'student'
+                students: [],
+                currentStudentId: null,
+                isLoading: true
+            };
+
+            function updateSyncBadge(mode) {
+                const badge = document.getElementById('sync-status-badge');
+                if (!badge) return;
+                if (mode === 'live') {
+                    badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold';
+                    badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Results Portal Live';
+                } else if (mode === 'local') {
+                    badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-semibold';
+                    badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span> Local Preview Mode';
+                } else {
+                    badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500 font-semibold';
+                    badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> Loading Portal...';
+                }
+            }
+
+            function loadLocalStudents() {
+                try {
+                    const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        if (Array.isArray(parsed)) return parsed;
+                    }
+                } catch (err) {
+                    console.error('Local storage read error:', err);
+                }
+                return [];
+            }
+
+            async function loadPortalData() {
+                state.isLoading = true;
+                updateSyncBadge('loading');
+                try {
+                    const response = await fetch(DATA_FILE_URL + '?t=' + Date.now(), { cache: 'no-store' });
+                    if (response.ok) {
+                        const json = await response.json();
+                        if (Array.isArray(json)) {
+                            state.students = json;
+                            state.isLoading = false;
+                            updateSyncBadge('live');
+                            render();
+                            return;
+                        }
+                    }
+                } catch (err) {
+                    console.warn('Could not fetch students_data.json directly; checking local storage.');
+                }
+
+                state.students = loadLocalStudents();
+                state.isLoading = false;
+                updateSyncBadge('local');
+                render();
+            }
+
+            window.addEventListener('storage', function (e) {
+                if (e.key === LOCAL_STORAGE_KEY) {
+                    const localList = loadLocalStudents();
+                    if (localList.length > 0) {
+                        state.students = localList;
+                        render();
+                    }
+                }
+            });
+
+            // =========================================================================
+            // 3. AMHS LOGO SVG
+            // =========================================================================
+            let logoUidCounter = 0;
+            function getAMHSLogoSVG(className) {
+                const cls = className || 'w-20 h-20';
+                const uid = ++logoUidCounter;
+                return (
+                    '<svg viewBox="0 0 240 248" class="' + cls + ' select-none shrink-0" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Association of Muslim Health Students Logo">' +
+                    '<defs>' +
+                    '<path id="amhsTopArc_' + uid + '" d="M 41,115 A 79,79 0 0,1 199,115" />' +
+                    '<path id="amhsBottomArc_' + uid + '" d="M 43,125 A 77,77 0 0,0 197,125" />' +
+                    '</defs>' +
+                    '<circle cx="120" cy="112" r="98" fill="#ffffff" stroke="#15803d" stroke-width="4.5"/>' +
+                    '<circle cx="120" cy="112" r="71" fill="#ffffff" stroke="#16a34a" stroke-width="2.5"/>' +
+                    '<text font-family="Inter, Arial, sans-serif" font-size="14.5" font-weight="800" fill="#1e293b" letter-spacing="0.8">' +
+                    '<textPath href="#amhsTopArc_' + uid + '" startOffset="50%" text-anchor="middle">ASSOCIATION OF MUSLIM</textPath>' +
+                    '</text>' +
+                    '<text font-family="Inter, Arial, sans-serif" font-size="15.5" font-weight="800" fill="#1e293b" letter-spacing="1.2">' +
+                    '<textPath href="#amhsBottomArc_' + uid + '" startOffset="50%" text-anchor="middle">HEALTH STUDENTS</textPath>' +
+                    '</text>' +
+                    '<polygon points="35,105 37.5,111 44,111 38.8,115 40.8,121 35,117.3 29.2,121 31.2,115 26,111 32.5,111" fill="#facc15" stroke="#a16207" stroke-width="0.8"/>' +
+                    '<polygon points="205,105 207.5,111 214,111 208.8,115 210.8,121 205,117.3 199.2,121 201.2,115 196,111 202.5,111" fill="#facc15" stroke="#a16207" stroke-width="0.8"/>' +
+                    '<path d="M 92,68 A 48,48 0 1,0 165,148 A 39,39 0 1,1 92,68 Z" fill="#16a34a"/>' +
+                    '<g transform="translate(0, 3)">' +
+                    '<path d="M 78,100 Q 99,93 120,101 L 120,141 Q 99,134 76,141 Z" fill="#ffffff" stroke="#1e293b" stroke-width="1.8" stroke-linejoin="round"/>' +
+                    '<path d="M 120,101 Q 141,93 162,100 L 164,141 Q 141,134 120,141 Z" fill="#ffffff" stroke="#1e293b" stroke-width="1.8" stroke-linejoin="round"/>' +
+                    '<path d="M 76,141 Q 99,138 120,145 Q 141,138 164,141" fill="none" stroke="#1e293b" stroke-width="1.6"/>' +
+                    '</g>' +
+                    '<line x1="120" y1="54" x2="120" y2="75" stroke="#1e293b" stroke-width="1.5"/>' +
+                    '<polygon points="120,42 122.4,48 129,48 123.7,52 125.7,58 120,54.3 114.3,58 116.3,52 111,48 117.6,48" fill="#dc2626"/>' +
+                    '<rect x="115" y="75" width="10" height="36" rx="1.5" fill="#0f172a"/>' +
+                    '<rect x="110" y="109" width="20" height="5" rx="1" fill="#0f172a"/>' +
+                    '<path d="M 103,103 C 92,85 90,62 112,67 C 128,70 135,74 146,72 C 158,70 162,82 154,105" fill="none" stroke="#0f172a" stroke-width="3.2" stroke-linecap="round"/>' +
+                    '<circle cx="151" cy="110" r="8.5" fill="#94a3b8" stroke="#1e293b" stroke-width="1.8"/>' +
+                    '<circle cx="151" cy="110" r="4" fill="#e2e8f0" stroke="#475569" stroke-width="1"/>' +
+                    '<path d="M 97,120 C 94,105 110,104 123,115" fill="none" stroke="#0f172a" stroke-width="3.2" stroke-linecap="round"/>' +
+                    '<path d="M 97,120 C 97,138 106,151 118,154" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round"/>' +
+                    '<path d="M 123,115 C 134,126 142,140 134,151" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round"/>' +
+                    '<circle cx="119" cy="154" r="2.2" fill="#1e293b"/>' +
+                    '<circle cx="133" cy="151" r="2.2" fill="#1e293b"/>' +
+                    '<path d="M 12,196 L 34,209 L 16,225 L 44,224 L 46,204 Z" fill="#15803d"/>' +
+                    '<path d="M 228,196 L 206,209 L 224,225 L 196,224 L 194,204 Z" fill="#15803d"/>' +
+                    '<path d="M 35,192 Q 120,218 205,192 L 200,222 Q 120,245 40,222 Z" fill="#16a34a" stroke="#14532d" stroke-width="1.5"/>' +
+                    '<text x="120" y="218" font-family="Inter, Arial, sans-serif" font-size="11.5" font-weight="800" fill="#fef08a" text-anchor="middle" letter-spacing="0.2">' +
+                    'Islam, Knowledge and Health' +
+                    '</text>' +
+                    '</svg>'
+                );
             }
 
             // =========================================================================
-            // 2. AMHS EMBLEM SVG
+            // 4. ELIGIBILITY CALCULATION ENGINE
             // =========================================================================
-            let logoUidCounter = 0;
-            function getAMHSLogoSVG(className = 'w-20 h-20') {
-                const uid = ++logoUidCounter;
+            function evaluateStudent(student) {
+                const scores = student.scores || {};
+                const deptResults = {};
+                let totalWrittenCount = 0;
+                const totalPossibleCount = ALL_COURSES.length;
+                const deptAverages = [];
+                const failingDepts = [];
+
+                DEPARTMENTS.forEach(function (dept) {
+                    let sum = 0;
+                    let written = 0;
+                    dept.courses.forEach(function (c) {
+                        const val = scores[c.key];
+                        if (val !== null && val !== undefined && val !== '' && !isNaN(Number(val))) {
+                            sum += Number(val);
+                            written++;
+                            totalWrittenCount++;
+                        }
+                    });
+
+                    const avg = written > 0 ? Number((sum / written).toFixed(2)) : null;
+                    let status = 'pending';
+                    if (avg !== null) {
+                        deptAverages.push(avg);
+                        if (avg >= PASS_MARK) {
+                            status = 'eligible';
+                        } else {
+                            status = 'not_eligible';
+                            failingDepts.push(dept.name);
+                        }
+                    }
+
+                    deptResults[dept.id] = {
+                        avg: avg,
+                        written: written,
+                        total: dept.courses.length,
+                        status: status
+                    };
+                });
+
+                const overallAvg = deptAverages.length > 0
+                    ? Number((deptAverages.reduce(function (a, b) { return a + b; }, 0) / deptAverages.length).toFixed(2))
+                    : null;
+
+                let overallStatus = 'pending';
+                let statusLabel = 'PENDING SCORES';
+                let statusDetail = 'No incourse scores have been uploaded yet.';
+
+                if (totalWrittenCount > 0) {
+                    if (failingDepts.length === 0 && overallAvg >= PASS_MARK) {
+                        overallStatus = 'eligible';
+                        statusLabel = 'ELIGIBLE';
+                        statusDetail = deptAverages.length === 3
+                            ? 'Meets the minimum 45% average across Anatomy, Medical Biochemistry, and Physiology.'
+                            : 'Currently meets the ≥ 45% threshold across ' + deptAverages.length + ' of 3 departments recorded so far.';
+                    } else {
+                        overallStatus = 'not_eligible';
+                        statusLabel = 'NOT ELIGIBLE';
+                        statusDetail = failingDepts.length > 0
+                            ? 'Below 45% minimum average in: ' + failingDepts.join(', ') + '.'
+                            : 'Overall pre-clinical average is below 45%.';
+                    }
+                }
+
+                return {
+                    deptResults: deptResults,
+                    overallAvg: overallAvg,
+                    overallStatus: overallStatus,
+                    statusLabel: statusLabel,
+                    statusDetail: statusDetail,
+                    totalWrittenCount: totalWrittenCount,
+                    totalPossibleCount: totalPossibleCount
+                };
+            }
+
+            // =========================================================================
+// 5. UI HELPERS
+            // =========================================================================
+            function escapeHTML(str) {
+                if (str === null || str === undefined) return '';
+                return String(str)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
+            function showToast(message, type) {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                const styles = {
+                    success: 'bg-emerald-700 text-white border-emerald-800',
+                    error: 'bg-rose-600 text-white border-rose-700',
+                    info: 'bg-slate-800 text-white border-slate-900'
+                };
+                const icons = {
+                    success: 'fa-circle-check',
+                    error: 'fa-circle-exclamation',
+                    info: 'fa-circle-info'
+                };
+                const t = type || 'info';
+                toast.className = 'pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border text-sm font-medium transition-all duration-300 ' + (styles[t] || styles.info);
+                toast.innerHTML = '<i class="fa-solid ' + (icons[t] || icons.info) + '"></i><span class="flex-1">' + escapeHTML(message) + '</span>';
+                container.appendChild(toast);
+                setTimeout(function () {
+                    toast.classList.add('opacity-0', '-translate-y-2');
+                    setTimeout(function () { toast.remove(); }, 300);
+                }, 3500);
+            }
+
+            function statusBadgeHTML(status) {
+                if (status === 'eligible') {
+                    return '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200"><i class="fa-solid fa-circle-check"></i> ELIGIBLE</span>';
+                }
+                if (status === 'not_eligible') {
+                    return '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-200"><i class="fa-solid fa-circle-xmark"></i> NOT ELIGIBLE</span>';
+                }
+                return '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200"><i class="fa-solid fa-clock"></i> PENDING</span>';
+            }
+
+            // =========================================================================
+            // 6. VIEWS
+            // =========================================================================
+            function renderLoginView() {
                 return `
-                <svg viewBox="0 0 240 248" class="${className} select-none shrink-0" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Association of Muslim Health Students Logo">
-                    <defs>
-                        <path id="amhsTopArc_${uid}" d="M 41,115 A 79,79 0 0,1 199,115" />
-                        <path id="amhsBottomArc_${uid}" d="M 43,125 A 77,77 0 0,0 197,125" />
-                    </defs>
-                    <circle cx="120" cy="112" r="98" fill="#ffffff" stroke="#15803d" stroke-width="4.5"/>
-                    <circle cx="120" cy="112" r="71" fill="#ffffff" stroke="#16a34a" stroke-width="2.5"/>
-                    <text font-family="Inter, Arial, sans-serif" font-size="14.5" font-weight="800" fill="#1e293b" letter-spacing="0.8">
-                        <textPath
+                <div class="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-amhs-50 via-white to-slate-100">
+                    <div class="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-12 bg-white rounded-3xl shadow-xl border border-slate-200/80 overflow-hidden">
+                        
+                        <!-- Left Branding Panel -->
+                        <div class="lg:col-span-5 bg-gradient-to-br from-amhs-800 via-amhs-700 to-emerald-900 text-white p-7 sm:p-8 flex flex-col justify-between relative overflow-hidden">
+                            <div class="absolute -top-16 -right-16 w-48 h-48 bg-white/5 rounded-full"></div>
+                            <div class="absolute -bottom-20 -left-16 w-64 h-64 bg-white/5 rounded-full"></div>
+
+                            <div class="relative z-10 flex flex-col items-center text-center">
+                                <div class="bg-white p-2 rounded-full shadow-lg mb-5">
+                                    ${getAMHSLogoSVG('w-28 h-28 sm:w-32 sm:h-32')}
+                                </div>
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-emerald-100 text-xs font-semibold tracking-wider uppercase mb-3">
+                                    <i class="fa-solid fa-stethoscope"></i> 2026/2027 Session
+                                </span>
+                                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight">
+                                    1st MB Eligibility Portal
+                                </h1>
+                                <p class="text-emerald-100/90 text-sm mt-3 leading-relaxed">
+                                    Association of Muslim Health Students (AMHS) Pre-Clinical Incourse Tracker &amp; First Medical Board Exam Eligibility Checker.
+                                </p>
+                            </div>
+
+                            <div class="relative z-10 mt-8 pt-5 border-t border-white/15 space-y-2.5 text-xs text-emerald-100">
+                                <div class="flex items-start gap-2.5">
+                                    <i class="fa-solid fa-circle-check text-amber-300 mt-0.5"></i>
+                                    <span>Minimum <strong>45% average</strong> required across Anatomy, Physiology &amp; Medical Biochemistry.</span>
+                                </div>
+                                <div class="flex items-start gap-2.5">
+                                    <i class="fa-solid fa-print text-amber-300 mt-0.5"></i>
+                                    <span>Instant printable official eligibility statement.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Login Form Panel -->
+                        <div class="lg:col-span-7 p-6 sm:p-10 flex flex-col justify-center">
+                            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amhs-50 text-amhs-800 border border-amhs-200 text-xs font-bold mb-4 self-start">
+                                <i class="fa-solid fa-user-graduate"></i> Student Eligibility Checker
+                            </div>
+                            <h2 class="text-2xl font-bold text-slate-900">Student Sign In</h2>
+                            <p class="text-sm text-slate-500 mt-1">Sign in with your Matric Number and the password assigned to you by the Directorate of Studies.</p>
+
+                            <form id="student-login-form" class="mt-6 space-y-4">
+                                <div>
+                                    <label for="login-matric" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Matric Number</label>
+                                    <div class="relative">
+                                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                                            <i class="fa-solid fa-id-card"></i>
+                                        </span>
+                                        <input type="text" id="login-matric" required placeholder="e.g. 2023/1001"
+                                            class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-amhs-500 focus:bg-white transition uppercase">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label for="login-password" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Assigned Password</label>
+                                    <div class="relative">
+                                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                                            <i class="fa-solid fa-lock"></i>
+                                        </span>
+                                        <input type="password" id="login-password" required placeholder="Enter your assigned password"
+                                            class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-amhs-500 focus:bg-white transition">
+                                    </div>
+                                </div>
+
+                                <button type="submit" ${state.isLoading ? 'disabled' : ''}
+                                    class="w-full py-3.5 px-5 bg-amhs-700 hover:bg-amhs-800 disabled:opacity-60 text-white font-semibold rounded-xl shadow-md shadow-amhs-700/20 transition flex items-center justify-center gap-2 text-sm">
+                                    ${state.isLoading
+                                        ? '<i class="fa-solid fa-spinner fa-spin"></i><span>Loading Results Database...</span>'
+                                        : '<span>Check Eligibility &amp; Results</span><i class="fa-solid fa-arrow-right"></i>'}
+                                </button>
+                            </form>
+
+                            <div class="mt-6 p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-500 leading-relaxed">
+                                <strong class="text-slate-700"><i class="fa-solid fa-circle-info text-amhs-600 mr-1"></i> Need help?</strong>
+                                If you have not received your assigned password or notice any discrepancy in your incourse scores, please contact the Office of the Directorate of Studies, AMHS.
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            }
+
+            function renderStudentView() {
+                const student = state.students.find(function (s) { return s.id === state.currentStudentId; });
+                if (!student) {
+                    state.view = 'login';
+                    return renderLoginView();
+                }
+
+                const evalData = evaluateStudent(student);
+                const generatedDate = new Date().toLocaleDateString('en-NG', {
+                    year: 'numeric', month: 'long', day: 'numeric'
+                });
+
+                const bannerStyles = {
+                    eligible: 'bg-emerald-50 border-emerald-300 text-emerald-900',
+                    not_eligible: 'bg-rose-50 border-rose-300 text-rose-900',
+                    pending: 'bg-slate-50 border-slate-300 text-slate-800'
+                };
+                const bannerIcon = {
+                    eligible: 'fa-circle-check text-emerald-600',
+                    not_eligible: 'fa-circle-xmark text-rose-600',
+                    pending: 'fa-clock text-slate-500'
+                };
+
+                const deptCardsHTML = DEPARTMENTS.map(function (dept) {
+                    const dr = evalData.deptResults[dept.id];
+                    const pct = dr.avg !== null ? Math.min(100, Math.max(0, dr.avg)) : 0;
+                    const barColor = dr.status === 'eligible' ? 'bg-emerald-600' : (dr.status === 'not_eligible' ? 'bg-rose-500' : 'bg-slate-300');
+                    return `
+                    <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 rounded-lg ${dept.badgeClass} border flex items-center justify-center text-sm">
+                                    <i class="fa-solid ${dept.icon}"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-xs font-extrabold text-slate-900">${dept.name}</h3>
+                                    <p class="text-[11px] text-slate-500">${dr.written} of ${dr.total} incourses</p>
+                                </div>
+                            </div>
+                            ${statusBadgeHTML(dr.status)}
+                        </div>
+                        <div class="mt-4 flex items-baseline justify-between">
+                            <span class="text-2xl font-extrabold text-slate-900">${dr.avg !== null ? dr.avg + '%' : 'Pending'}</span>
+                            <span class="text-xs text-slate-400">Target ≥ ${PASS_MARK}%</span>
+                        </div>
+                        <div class="mt-2 w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                            <div class="h-full ${barColor} rounded-full transition-all" style="width: ${pct}%"></div>
+                        </div>
+                    </div>`;
+                }).join('');
+
+                const deptTablesHTML = DEPARTMENTS.map(function (dept) {
+                    const dr = evalData.deptResults[dept.id];
+                    const rowsHTML = dept.courses.map(function (c) {
+                        const score = (student.scores || {})[c.key];
+                        const hasScore = score !== null && score !== undefined && score !== '';
+                        let remarkHTML = '<span class="text-xs font-medium text-slate-400 italic">Not Yet Written</span>';
+                        if (hasScore) {
+                            remarkHTML = Number(score) >= PASS_MARK
+                                ? '<span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">Pass (≥45%)</span>'
+                                : '<span class="text-xs font-bold text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-200">Below 45%</span>';
+                        }
+                        const scoreColor = hasScore ? (Number(score) >= PASS_MARK ? 'text-slate-900' : 'text-rose-600') : 'text-slate-400';
+                        return `
+                        <tr class="hover:bg-slate-50/70">
+                            <td class="py-2.5 px-4 font-bold text-slate-400 text-xs">${c.code}.</td>
+                            <td class="py-2.5 px-4 font-semibold text-slate-800 text-xs sm:text-sm">${c.label}</td>
+                            <td class="py-2.5 px-4 text-right font-mono font-bold ${scoreColor}">${hasScore ? score + '%' : '—'}</td>
+                            <td class="py-2.5 px-4 text-right">${remarkHTML}</td>
+                        </tr>`;
+                    }).join('');
+
+                    return `
+                    <div class="border border-slate-200 rounded-2xl overflow-hidden print-break-avoid">
+                        <div class="${dept.headerBg} text-white px-5 py-3 flex flex-wrap items-center justify-between gap-2">
+                            <div>
+                                <h3 class="text-sm font-extrabold tracking-wide flex items-center gap-2">
+                                    <i class="fa-solid ${dept.icon}"></i> ${dept.name}
+                                </h3>
+                                <p class="text-[11px] text-white/80">${dept.subtitle}</p>
+                            </div>
+                            <div class="text-xs font-bold bg-white/15 px-3 py-1 rounded-lg">
+                                Dept. Average: ${dr.avg !== null ? dr.avg + '%' : 'Not Yet Available'}
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                                        <th class="py-2.5 px-4 w-12">Code</th>
+                                        <th class="py-2.5 px-4">Incourse Assessment</th>
+                                        <th class="py-2.5 px-4 text-right w-32">Score (%)</th>
+                                        <th class="py-2.5 px-4 text-right w-36">Remark</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 text-sm">${rowsHTML}</tbody>
+                            </table>
+                        </div>
+                    </div>`;
+                }).join('');
+
+                return `
+                <header class="bg-white border-b border-slate-200 sticky top-0 z-30 no-print">
+                    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-3 min-w-0">
+                            ${getAMHSLogoSVG('w-11 h-11')}
+                            <div class="min-w-0">
+                                <h1 class="text-sm sm:text-base font-extrabold text-amhs-900 truncate">AMHS 1st MB Eligibility Portal</h1>
+                                <p class="text-xs text-slate-500 truncate">Student Pre-Clinical Statement</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                            <button type="button" id="student-print-btn" class="px-3.5 sm:px-4 py-2 bg-amhs-700 hover:bg-amhs-800 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-sm transition flex items-center gap-2">
+                                <i class="fa-solid fa-print"></i>
+                                <span class="hidden sm:inline">Print Official Slip</span>
+                                <span class="sm:hidden">Print</span>
+                            </button>
+                            <button type="button" id="logout-btn" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-semibold rounded-xl transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-right-from-bracket"></i>
+                                <span class="hidden sm:inline">Sign Out</span>
+                            </button>
+                        </div>
+                    </div>
+                </header>
+
+                <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+                    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-5 sm:p-8 print-container">
+
+                        <!-- Official Letterhead -->
+                        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pb-6 border-b-2 border-amhs-700">
+                            <div class="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+                                ${getAMHSLogoSVG('w-20 h-20')}
+                                <div>
+                                    <p class="text-xs font-bold uppercase tracking-widest text-amhs-700">Association of Muslim Health Students (AMHS)</p>
+                                    <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-0.5">1st MB Exam Eligibility Statement</h2>
+                                    <p class="text-xs text-slate-500 mt-0.5">Office of the Directorate of Studies &bull; 2026/2027 Academic Session</p>
+                                </div>
+                            </div>
+                            <div class="text-center sm:text-right text-xs text-slate-500 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-200">
+                                <p class="font-bold text-slate-700 uppercase tracking-wider">Date Issued</p>
+                                <p class="font-medium mt-0.5">${escapeHTML(generatedDate)}</p>
+                            </div>
+                        </div>
+
+                         <!-- Student Bio & Overall Eligibility Banner -->
+                        <div class="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-5 print-break-avoid">
+                            <div class="lg:col-span-5 bg-slate-50 rounded-2xl p-5 border border-slate-200 flex flex-col justify-center">
+                                <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Student Information</div>
+                                <div class="text-lg font-extrabold text-slate-900 mt-1">${escapeHTML(student.name)}</div>
+                                <div class="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-xs">
+                                    <div>
+                                        <span class="text-slate-500">Matric Number:</span>
+                                        <span class="ml-1 font-bold text-slate-900 font-mono">${escapeHTML(student.matric)}</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-slate-500">Incourses Recorded:</span>
+                                        <span class="ml-1 font-bold text-slate-900">${evalData.totalWrittenCount} / ${evalData.totalPossibleCount}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="lg:col-span-7 rounded-2xl p-5 border-2 ${bannerStyles[evalData.overallStatus]} flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                <div class="flex items-start gap-3.5">
+                                    <i class="fa-solid ${bannerIcon[evalData.overallStatus]} text-3xl mt-0.5"></i>
+                                    <div>
+                                        <div class="text-xs font-bold uppercase tracking-wider opacity-75">Current 1st MB Eligibility Status</div>
+                                        <div class="text-2xl font-extrabold tracking-tight mt-0.5">${evalData.statusLabel}</div>
+                                        <p class="text-xs mt-1 leading-relaxed opacity-90">${escapeHTML(evalData.statusDetail)}</p>
+                                    </div>
+                                </div>
+                                <div class="bg-white/90 px-4 py-3 rounded-xl border border-black/5 text-center shrink-0 self-stretch sm:self-center flex flex-col justify-center">
+                                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Overall Avg</span>
+                                    <span class="text-2xl font-extrabold text-slate-900">${evalData.overallAvg !== null ? evalData.overallAvg + '%' : '—'}</span>
+                                    <span class="text-[10px] text-slate-500">Pass Mark: ${PASS_MARK}%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3 Department Summary Cards -->
+                        <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 print-break-avoid">
+                            ${deptCardsHTML}
+                        </div>
+
+                        <!-- Detailed Incourse Breakdown Tables -->
+                        <div class="mt-8 space-y-6">
+                            ${deptTablesHTML}
+                        </div>
+
+                        <!-- Official Print Signature Footer -->
+                        <div class="mt-8 pt-6 border-t border-slate-200 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-6 text-xs text-slate-500 print-break-avoid">
+                            <div class="max-w-md">
+                                <p class="font-bold text-slate-700">Eligibility Rule:</p>
+                                <p class="mt-0.5">To be eligible for the 1st Medical Board Examination, a student must maintain a minimum average of <strong>45%</strong> across Anatomy, Medical Biochemistry, and Physiology incourses.</p>
+                            </div>
+                            <div class="text-center sm:text-right min-w-[220px]">
+                                <div class="h-10 border-b border-slate-400 mb-1.5"></div>
+                                <p class="font-bold text-slate-800">Directorate of Studies, AMHS</p>
+                                <p class="text-[11px] text-slate-500">Official Verification &bull; 2026/2027</p>
+                            </div>
+                        </div>
+
+                    </div>
+                </main>`;
+            }
+
+            // =========================================================================
+            // 7. EVENT BINDING & RENDER
+            // =========================================================================
+            function bindEvents() {
+                const loginForm = document.getElementById('student-login-form');
+                if (loginForm) {
+                    loginForm.onsubmit = function (e) {
+                        e.preventDefault();
+                        const matric = document.getElementById('login-matric').value.trim().toUpperCase();
+                        const pwd = document.getElementById('login-password').value.trim();
+
+                        const match = state.students.find(function (s) {
+                            return String(s.matric || '').trim().toUpperCase() === matric &&
+                                   String(s.password || '').trim() === pwd;
+                        });
+
+                        if (!match) {
+                            showToast('Invalid Matric Number or Password. Please verify your credentials.', 'error');
+                            return;
+                        }
+                        state.currentStudentId = match.id;
+                        state.view = 'student';
+                        showToast('Welcome, ' + match.name + '!', 'success');
+                        render();
+                    };
+                }
+
+                const printBtn = document.getElementById('student-print-btn');
+                if (printBtn) {
+                    printBtn.onclick = function () { window.print(); };
+                }
+
+                const logoutBtn = document.getElementById('logout-btn');
+                if (logoutBtn) {
+                    logoutBtn.onclick = function () {
+                        state.currentStudentId = null;
+                        state.view = 'login';
+                        render();
+                    };
+                }
+            }
+
+            function render() {
+                const app = document.getElementById('app');
+                app.innerHTML = state.view === 'student' ? renderStudentView() : renderLoginView();
+                bindEvents();
+            }
+
+            render();
+            loadPortalData();
+        })();
+    </script>
+</body>
+</html>
