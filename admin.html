@@ -69,10 +69,10 @@
 </head>
 <body class="min-h-screen flex flex-col text-slate-800 antialiased selection:bg-amhs-200 selection:text-amhs-900">
 
-    <!-- Toast Notifications -->
+    <!-- ==================== TOAST NOTIFICATIONS ==================== -->
     <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none no-print"></div>
 
-    <!-- Confirmation Modal -->
+    <!-- ==================== CONFIRMATION MODAL ==================== -->
     <div id="custom-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 no-print">
         <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-100">
             <div class="flex items-start gap-4">
@@ -91,7 +91,86 @@
         </div>
     </div>
 
-    <!-- Add / Edit Student Modal -->
+    <!-- ==================== GITHUB AUTO-SYNC SETUP MODAL ==================== -->
+    <div id="github-setup-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 no-print">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200">
+            <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center">
+                        <i class="fa-brands fa-github text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold leading-tight">GitHub Auto-Sync Setup</h3>
+                        <p class="text-xs text-slate-300">Connect once so every update publishes live automatically.</p>
+                    </div>
+                </div>
+                <button id="close-gh-modal-btn" type="button" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <form id="github-setup-form" class="p-6 space-y-4">
+                <div>
+                    <label for="gh-repo-input" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">GitHub Repository (username/repo-name) *</label>
+                    <input type="text" id="gh-repo-input" required placeholder="e.g. HammedSamad/amhs-mb1-portal"
+                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-amhs-500 focus:bg-white">
+                </div>
+                <div>
+                    <label for="gh-branch-input" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Branch Name *</label>
+                    <input type="text" id="gh-branch-input" required value="main" placeholder="main"
+                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-amhs-500 focus:bg-white">
+                </div>
+                <div>
+                    <label for="gh-token-input" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">GitHub Fine-Grained Token (Contents: Read &amp; Write) *</label>
+                    <input type="password" id="gh-token-input" required placeholder="github_pat_..."
+                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-amhs-500 focus:bg-white">
+                    <p class="text-[11px] text-slate-500 mt-1.5">
+                        <i class="fa-solid fa-shield-halved text-amhs-600 mr-1"></i>
+                        Stored privately in this browser only—never uploaded to GitHub.
+                    </p>
+                </div>
+                <div class="pt-2 flex items-center justify-between gap-2">
+                    <button type="button" id="disconnect-gh-btn" class="px-3.5 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition">
+                        Disconnect
+                    </button>
+                    <div class="flex items-center gap-2">
+                        <button type="button" id="cancel-gh-modal-btn" class="px-4 py-2.5 text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition">Cancel</button>
+                        <button type="submit" class="px-5 py-2.5 text-sm font-bold text-white bg-amhs-700 hover:bg-amhs-800 rounded-xl shadow-sm transition flex items-center gap-2">
+                            <i class="fa-solid fa-plug-circle-check"></i> Save &amp; Sync Now
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- ==================== LIVE JSON PREVIEW MODAL ==================== -->
+    <div id="json-viewer-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 no-print">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[88vh] flex flex-col border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-code text-emerald-400"></i>
+                    <div>
+                        <h3 class="text-base font-bold leading-tight">Live students_data.json</h3>
+                        <p class="text-xs text-slate-300">Exact JSON data synced automatically to GitHub for students.</p>
+                    </div>
+                </div>
+                <button id="close-json-modal-btn" type="button" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="flex-1 overflow-auto p-4 bg-slate-950">
+                <pre id="json-viewer-content" class="text-xs font-mono text-emerald-300 whitespace-pre-wrap break-words"></pre>
+            </div>
+            <div class="px-6 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2 shrink-0">
+                <button type="button" id="copy-json-btn" class="px-4 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-300 hover:bg-slate-100 rounded-xl transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-copy"></i> Copy JSON
+                </button>
+                <button type="button" id="close-json-modal-btn-2" class="px-4 py-2 text-xs font-bold text-white bg-amhs-700 hover:bg-amhs-800 rounded-xl transition">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== ADD / EDIT STUDENT MODAL ==================== -->
     <div id="student-editor-modal" class="fixed inset-0 z-40 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-3 sm:p-6 no-print">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col border border-slate-200 overflow-hidden">
             <div class="px-6 py-4 bg-amhs-800 text-white flex items-center justify-between shrink-0">
@@ -101,7 +180,7 @@
                     </div>
                     <div>
                         <h3 id="editor-modal-title" class="text-lg font-bold leading-tight">Add New Student</h3>
-                        <p class="text-xs text-emerald-100">Leave unwritten incourses blank; eligibility recalculates automatically.</p>
+                        <p class="text-xs text-emerald-100">Leave unwritten incourses blank; eligibility &amp; JSON update automatically.</p>
                     </div>
                 </div>
                 <button id="close-editor-modal-btn" type="button" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition" aria-label="Close modal">
@@ -148,17 +227,17 @@
                 <div class="flex items-center gap-3 ml-auto">
                     <button type="button" id="cancel-editor-modal-btn" class="px-4 py-2.5 text-sm font-semibold text-slate-600 bg-white border border-slate-300 hover:bg-slate-100 rounded-xl transition">Cancel</button>
                     <button type="submit" form="student-editor-form" class="px-5 py-2.5 text-sm font-semibold text-white bg-amhs-700 hover:bg-amhs-800 rounded-xl shadow-sm transition flex items-center gap-2">
-                        <i class="fa-solid fa-floppy-disk"></i> Save Student Record
+                        <i class="fa-solid fa-floppy-disk"></i> Save &amp; Auto-Publish
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Main Application Root -->
+    <!-- ==================== MAIN APPLICATION ROOT ==================== -->
     <div id="app" class="flex-1 flex flex-col"></div>
 
-    <!-- Required Global Footer Across All Pages -->
+    <!-- ==================== REQUIRED GLOBAL FOOTER ==================== -->
     <footer class="w-full bg-white border-t border-slate-200 py-4 px-4 mt-auto">
         <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
             <div class="flex items-center justify-center sm:justify-start gap-2 text-xs sm:text-sm font-semibold text-amhs-800">
@@ -166,8 +245,8 @@
                 <span>Powered by the Office of the Directorate of Studies, AMHS, 2026/2027.</span>
             </div>
             <div class="flex flex-wrap items-center justify-center gap-3 text-xs text-slate-400 no-print">
-                <span id="publish-status-badge" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Ready
+                <span id="publish-status-badge" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500 font-semibold">
+                    <span class="w-2 h-2 rounded-full bg-slate-400"></span> Checking Sync...
                 </span>
                 <span id="footer-record-count">0 Student Records</span>
             </div>
@@ -184,7 +263,8 @@
             const DATA_FILE_URL = 'students_data.json';
             const LOCAL_STORAGE_KEY = 'amhs_portal_students_v2';
             const LOCAL_PASSCODE_KEY = 'amhs_portal_admin_passcode_v2';
-            const DEFAULT_ADMIN_PASSCODE = 'AMHS';
+            const GH_CONFIG_KEY = 'amhs_github_sync_config_v1';
+            const DEFAULT_ADMIN_PASSCODE = 'AMHS-DOS-2026';
             const PASS_MARK = 45;
 
             const DEPARTMENTS = [
@@ -259,7 +339,7 @@
             }
 
             // =========================================================================
-            // 2. APPLICATION STATE & STORAGE
+            // 2. APPLICATION STATE & GITHUB AUTO-SYNC ENGINE
             // =========================================================================
             const state = {
                 view: 'admin-login', // 'admin-login' | 'admin' | 'preview'
@@ -267,8 +347,8 @@
                 adminPasscode: localStorage.getItem(LOCAL_PASSCODE_KEY) || DEFAULT_ADMIN_PASSCODE,
                 students: [],
                 previewStudentId: null,
-                hasUnpublishedChanges: false,
-                // Admin UI controls
+                syncState: 'idle', // 'idle' | 'syncing' | 'synced' | 'disconnected' | 'error'
+                lastSyncTime: '',
                 adminTab: 'roster', // 'roster' | 'bulk-score' | 'csv-import'
                 searchQuery: '',
                 filterStatus: 'all',
@@ -281,48 +361,192 @@
                 showPasswords: false
             };
 
-            function saveDraftToLocal(markUnpublished) {
+            let isGitHubSyncing = false;
+            let pendingGitHubSync = false;
+
+            function getGitHubConfig() {
                 try {
-                    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state.students));
-                    if (markUnpublished) {
-                        state.hasUnpublishedChanges = true;
-                        updatePublishBadge();
-                    }
+                    const raw = localStorage.getItem(GH_CONFIG_KEY);
+                    if (!raw) return null;
+                    const parsed = JSON.parse(raw);
+                    if (parsed && parsed.repo && parsed.token) return parsed;
                 } catch (err) {
-                    console.error('Local save failed:', err);
+                    console.error('Config read error:', err);
                 }
+                return null;
+            }
+
+            function toBase64UTF8(str) {
+                const bytes = new TextEncoder().encode(str);
+                let binary = '';
+                for (let i = 0; i < bytes.length; i++) {
+                    binary += String.fromCharCode(bytes[i]);
+                }
+                return btoa(binary);
+            }
+
+            function fromBase64UTF8(b64) {
+                const cleaned = String(b64).replace(/\s/g, '');
+                const binary = atob(cleaned);
+                const bytes = new Uint8Array(binary.length);
+                for (let i = 0; i < binary.length; i++) {
+                    bytes[i] = binary.charCodeAt(i);
+                }
+                return new TextDecoder().decode(bytes);
             }
 
             function updatePublishBadge() {
                 const badge = document.getElementById('publish-status-badge');
                 if (!badge) return;
-                if (state.hasUnpublishedChanges) {
+                const cfg = getGitHubConfig();
+                if (!cfg) {
                     badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-300 font-semibold';
-                    badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> Unpublished Changes — Click Publish JSON';
+                    badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span> Auto-Sync Not Connected';
+                    return;
+                }
+                if (state.syncState === 'syncing') {
+                    badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200 font-semibold';
+                    badge.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-[10px]"></i> Auto-Publishing to GitHub...';
+                } else if (state.syncState === 'error') {
+                    badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 font-semibold';
+                    badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500"></span> Sync Error — Check Token';
                 } else {
                     badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold';
-                    badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Synced &amp; Ready';
+                    badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span> GitHub Auto-Sync Live' + (state.lastSyncTime ? ' (' + state.lastSyncTime + ')' : '');
                 }
             }
 
-            async function loadInitialData(forceFromLiveFile) {
-                if (!forceFromLiveFile) {
+            function saveAndAutoPublish(shouldSyncToGitHub) {
+                try {
+                    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state.students));
+                } catch (err) {
+                    console.error('Local save failed:', err);
+                }
+                if (shouldSyncToGitHub) {
+                    const cfg = getGitHubConfig();
+                    if (cfg) {
+                        autoSyncToGitHub(0);
+                    } else {
+                        updatePublishBadge();
+                        showToast('Saved locally. Click "Connect GitHub" at the top to publish live automatically.', 'info');
+                    }
+                }
+            }
+
+            async function autoSyncToGitHub(retryCount) {
+                const cfg = getGitHubConfig();
+                if (!cfg) {
+                    openGitHubSetupModal();
+                    return;
+                }
+                if (isGitHubSyncing) {
+                    pendingGitHubSync = true;
+                    return;
+                }
+
+                isGitHubSyncing = true;
+                state.syncState = 'syncing';
+                updatePublishBadge();
+
+                try {
+                    const apiUrl = 'https://api.github.com/repos/' + cfg.repo + '/contents/' + DATA_FILE_URL;
+                    const headers = {
+                        'Authorization': 'Bearer ' + cfg.token,
+                        'Accept': 'application/vnd.github+json',
+                        'Content-Type': 'application/json'
+                    };
+
+                    // 1. Fetch current file SHA from GitHub
+                    let fileSha = null;
+                    const getRes = await fetch(apiUrl + '?ref=' + encodeURIComponent(cfg.branch) + '&t=' + Date.now(), {
+                        headers: headers,
+                        cache: 'no-store'
+                    });
+
+                    if (getRes.ok) {
+                        const fileData = await getRes.json();
+                        fileSha = fileData.sha;
+                    } else if (getRes.status === 401 || getRes.status === 403) {
+                        throw new Error('GitHub token rejected or lacks Contents Read/Write permission.');
+                    } else if (getRes.status !== 404) {
+                        throw new Error('Repository not found (HTTP ' + getRes.status + '). Verify username/repo.');
+                    }
+
+                    // 2. Push updated students_data.json
+                    const payload = {
+                        message: 'Auto-update students_data.json (' + state.students.length + ' students)',
+                        content: toBase64UTF8(JSON.stringify(state.students, null, 2)),
+                        branch: cfg.branch
+                    };
+                    if (fileSha) payload.sha = fileSha;
+
+                    const putRes = await fetch(apiUrl, {
+                        method: 'PUT',
+                        headers: headers,
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (putRes.status === 409 && retryCount < 1) {
+                        isGitHubSyncing = false;
+                        return autoSyncToGitHub(retryCount + 1);
+                    }
+
+                    if (!putRes.ok) {
+                        const errBody = await putRes.json().catch(function () { return {}; });
+                        throw new Error(errBody.message || ('GitHub push failed (HTTP ' + putRes.status + ')'));
+                    }
+
+                    state.syncState = 'synced';
+                    state.lastSyncTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    updatePublishBadge();
+                    showToast('Auto-published to students_data.json! Live for students in ~15 seconds.', 'success');
+                } catch (err) {
+                    console.error('GitHub auto-sync error:', err);
+                    state.syncState = 'error';
+                    updatePublishBadge();
+                    showToast('Auto-Sync Error: ' + err.message, 'error');
+                } finally {
+                    isGitHubSyncing = false;
+                    if (pendingGitHubSync) {
+                        pendingGitHubSync = false;
+                        autoSyncToGitHub(0);
+                    }
+                }
+            }
+
+            async function loadLatestDataAutomatically() {
+                // Step 1: If GitHub Auto-Sync is configured, pull the freshest students_data.json directly from GitHub API
+                const cfg = getGitHubConfig();
+                if (cfg) {
                     try {
-                        const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
-                        if (raw) {
-                            const parsed = JSON.parse(raw);
-                            if (Array.isArray(parsed) && parsed.length > 0) {
-                                state.students = parsed;
-                                state.students.sort(function (a, b) { return a.matric.localeCompare(b.matric); });
-                                render();
-                                return;
+                        const apiUrl = 'https://api.github.com/repos/' + cfg.repo + '/contents/' + DATA_FILE_URL + '?ref=' + encodeURIComponent(cfg.branch) + '&t=' + Date.now();
+                        const res = await fetch(apiUrl, {
+                            headers: {
+                                'Authorization': 'Bearer ' + cfg.token,
+                                'Accept': 'application/vnd.github+json'
+                            },
+                            cache: 'no-store'
+                        });
+                        if (res.ok) {
+                            const fileData = await res.json();
+                            if (fileData && fileData.content) {
+                                const decoded = fromBase64UTF8(fileData.content);
+                                const parsed = JSON.parse(decoded);
+                                if (Array.isArray(parsed)) {
+                                    state.students = parsed;
+                                    state.students.sort(function (a, b) { return a.matric.localeCompare(b.matric); });
+                                    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state.students));
+                                    state.syncState = 'synced';
+                                    render();
+                                    return;
+                                }
                             }
                         }
                     } catch (err) {
-                        console.error('Local load error:', err);
+                        console.warn('Direct GitHub load skipped, falling back to live JSON/local:', err);
                     }
                 }
-
+                // Step 2: Otherwise try fetching students_data.json from the live Netlify host
                 try {
                     const response = await fetch(DATA_FILE_URL + '?t=' + Date.now(), { cache: 'no-store' });
                     if (response.ok) {
@@ -330,41 +554,32 @@
                         if (Array.isArray(json)) {
                             state.students = json;
                             state.students.sort(function (a, b) { return a.matric.localeCompare(b.matric); });
-                            state.hasUnpublishedChanges = false;
-                            saveDraftToLocal(false);
-                            if (forceFromLiveFile) {
-                                showToast('Reloaded ' + state.students.length + ' students from live students_data.json.', 'success');
-                            }
+                            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state.students));
                             render();
                             return;
                         }
                     }
                 } catch (err) {
-                    if (forceFromLiveFile) {
-                        showToast('Could not fetch students_data.json (works best on Netlify or Live Server).', 'error');
+                    console.warn('Could not fetch students_data.json directly; loading local storage.');
+                }
+
+                // Step 3: Fallback to browser localStorage (useful when previewing locally in Spck)
+                try {
+                    const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        if (Array.isArray(parsed)) {
+                            state.students = parsed;
+                            state.students.sort(function (a, b) { return a.matric.localeCompare(b.matric); });
+                        }
                     }
+                } catch (err) {
+                    console.error('Local fallback error:', err);
                 }
                 render();
             }
 
-            function downloadPublishJSON() {
-                const jsonString = JSON.stringify(state.students, null, 2);
-                const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8;' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'students_data.json';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-
-                state.hasUnpublishedChanges = false;
-                updatePublishBadge();
-                showToast('Downloaded students_data.json! Replace it in your GitHub repo and push to update Netlify.', 'success');
-            }
-
-// =========================================================================
+            // =========================================================================
             // 3. AMHS LOGO SVG
             // =========================================================================
             let logoUidCounter = 0;
@@ -414,7 +629,6 @@
                     '</svg>'
                 );
             }
-
             // =========================================================================
             // 4. ELIGIBILITY ENGINE & UTILITIES
             // =========================================================================
@@ -574,9 +788,87 @@
                     el.innerHTML = '<i class="fa-solid fa-users text-amhs-600 mr-1"></i> ' + state.students.length + ' Student Record' + (state.students.length === 1 ? '' : 's');
                 }
             }
-            
-             // =========================================================================
-            // 5. CSV IMPORT / EXPORT & 300-STUDENT GENERATOR
+            // =========================================================================
+            // 5. GITHUB SETUP & JSON VIEWER MODAL HANDLERS
+            // =========================================================================
+            function openGitHubSetupModal() {
+                const modal = document.getElementById('github-setup-modal');
+                const cfg = getGitHubConfig() || { repo: '', branch: 'main', token: '' };
+                document.getElementById('gh-repo-input').value = cfg.repo || '';
+                document.getElementById('gh-branch-input').value = cfg.branch || 'main';
+                document.getElementById('gh-token-input').value = cfg.token || '';
+                document.getElementById('disconnect-gh-btn').style.display = cfg.repo ? 'inline-block' : 'none';
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+
+            function closeGitHubSetupModal() {
+                const modal = document.getElementById('github-setup-modal');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+
+            document.getElementById('close-gh-modal-btn').addEventListener('click', closeGitHubSetupModal);
+            document.getElementById('cancel-gh-modal-btn').addEventListener('click', closeGitHubSetupModal);
+            document.getElementById('disconnect-gh-btn').addEventListener('click', function () {
+                localStorage.removeItem(GH_CONFIG_KEY);
+                state.syncState = 'disconnected';
+                closeGitHubSetupModal();
+                updatePublishBadge();
+                showToast('GitHub Auto-Sync disconnected.', 'info');
+                render();
+            });
+
+            document.getElementById('github-setup-form').addEventListener('submit', function (e) {
+                e.preventDefault();
+                const repo = document.getElementById('gh-repo-input').value.trim();
+                const branch = document.getElementById('gh-branch-input').value.trim() || 'main';
+                const token = document.getElementById('gh-token-input').value.trim();
+                if (!repo || repo.indexOf('/') === -1 || !token) {
+                    showToast('Enter a valid repository (username/repo) and token.', 'error');
+                    return;
+                }
+                localStorage.setItem(GH_CONFIG_KEY, JSON.stringify({ repo: repo, branch: branch, token: token }));
+                closeGitHubSetupModal();
+                showToast('GitHub Auto-Sync connected to ' + repo + '!', 'success');
+                render();
+                autoSyncToGitHub(0);
+            });
+
+            function openJSONViewerModal() {
+                const modal = document.getElementById('json-viewer-modal');
+                document.getElementById('json-viewer-content').textContent = JSON.stringify(state.students, null, 2);
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+
+            function closeJSONViewerModal() {
+                const modal = document.getElementById('json-viewer-modal');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+
+            document.getElementById('close-json-modal-btn').addEventListener('click', closeJSONViewerModal);
+            document.getElementById('close-json-modal-btn-2').addEventListener('click', closeJSONViewerModal);
+            document.getElementById('copy-json-btn').addEventListener('click', function () {
+                const text = JSON.stringify(state.students, null, 2);
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).then(function () {
+                        showToast('Copied students_data.json to clipboard!', 'success');
+                    });
+                } else {
+                    const ta = document.createElement('textarea');
+                    ta.value = text;
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    showToast('Copied students_data.json to clipboard!', 'success');
+                }
+            });
+
+            // =========================================================================
+            // 6. CSV IMPORT / EXPORT & 300-STUDENT GENERATOR
             // =========================================================================
             function escapeCSVCell(val) {
                 if (val === null || val === undefined) return '';
@@ -680,7 +972,6 @@
                         return;
                     }
 
-                    // Auto-detect comma vs semicolon delimiter (common in some Excel locales)
                     const headerLine = lines[0];
                     const delimiter = (headerLine.split(';').length > headerLine.split(',').length) ? ';' : ',';
                     const headers = parseCSVLine(headerLine, delimiter).map(function (h) { return h.toUpperCase().trim(); });
@@ -748,8 +1039,8 @@
 
                     state.students.sort(function (a, b) { return a.matric.localeCompare(b.matric); });
                     state.currentPage = 1;
-                    saveDraftToLocal(true);
-                    showToast('CSV Imported: ' + addedCount + ' added, ' + updatedCount + ' updated. Click Publish JSON to go live!', 'success');
+                    showToast('CSV Imported: ' + addedCount + ' added, ' + updatedCount + ' updated.', 'success');
+                    saveAndAutoPublish(true);
                     render();
                 } catch (err) {
                     console.error('CSV parse error:', err);
@@ -793,13 +1084,12 @@
                 }
 
                 state.students.sort(function (a, b) { return a.matric.localeCompare(b.matric); });
-                saveDraftToLocal(true);
                 showToast('Loaded ' + created + ' sample students (Total: ' + state.students.length + ').', 'success');
+                saveAndAutoPublish(true);
                 render();
             }
-            
             // =========================================================================
-            // 6. VIEWS
+            // 7. VIEWS
             // =========================================================================
             function renderAdminLoginView() {
                 return `
@@ -954,6 +1244,7 @@
                 </main>`;
             }
             function renderAdminView() {
+                const ghCfg = getGitHubConfig();
                 let eligibleCount = 0;
                 let notEligibleCount = 0;
                 let pendingCount = 0;
@@ -989,12 +1280,16 @@
                             </div>
                         </div>
                         <div class="flex flex-wrap items-center gap-2">
-                            <button type="button" id="publish-json-btn" class="px-3.5 py-2 ${state.hasUnpublishedChanges ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 animate-pulse' : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950'} text-xs sm:text-sm font-extrabold rounded-xl shadow-sm transition flex items-center gap-1.5">
-                                <i class="fa-solid fa-cloud-arrow-up"></i>
-                                <span>Publish (students_data.json)</span>
+                            <button type="button" id="open-gh-setup-btn" class="px-3.5 py-2 ${ghCfg ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950' : 'bg-amber-400 hover:bg-amber-300 text-slate-950 animate-pulse'} text-xs sm:text-sm font-extrabold rounded-xl shadow-sm transition flex items-center gap-1.5">
+                                <i class="fa-brands fa-github"></i>
+                                <span>${ghCfg ? 'Auto-Sync ON' : 'Connect GitHub'}</span>
                             </button>
                             <button type="button" id="open-add-student-btn" class="px-3.5 py-2 bg-white/15 hover:bg-white/25 text-white text-xs sm:text-sm font-bold rounded-xl transition flex items-center gap-1.5">
                                 <i class="fa-solid fa-user-plus"></i><span>Add Student</span>
+                            </button>
+                            <button type="button" id="view-json-btn" title="View Live students_data.json" class="px-3 py-2 bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-semibold rounded-xl transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-code"></i>
+                                <span class="hidden md:inline">View JSON</span>
                             </button>
                             <a href="index.html" target="_blank" rel="noopener noreferrer" class="px-3 py-2 bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-semibold rounded-xl transition flex items-center gap-1.5">
                                 <i class="fa-solid fa-arrow-up-right-from-square"></i>
@@ -1008,19 +1303,27 @@
                 </header>
 
                 <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
-                    <!-- Publishing Reminder Banner -->
-                    <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    ${!ghCfg ? `
+                    <div class="bg-amber-50 border border-amber-300 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                         <div class="flex items-start gap-3">
-                            <i class="fa-solid fa-circle-info text-emerald-700 text-lg mt-0.5"></i>
-                            <div class="text-xs sm:text-sm text-emerald-950">
-                                <strong>How to update students on Netlify:</strong> After adding or updating scores below, click <strong>Publish (students_data.json)</strong> in the top bar, replace <code>students_data.json</code> in your GitHub repository, and push.
-                        
+                            <i class="fa-brands fa-github text-amber-700 text-xl mt-0.5"></i>
+                            <div class="text-xs sm:text-sm text-amber-950">
+                                <strong>One-Time Setup Required for Automation:</strong> Click <strong>Connect GitHub</strong> to link your repository once. After that, every student you register or score you save will automatically update <code>students_data.json</code> on GitHub and go live on Netlify in ~15 seconds.
                             </div>
                         </div>
-                        <button type="button" id="reload-live-json-btn" class="px-3 py-1.5 bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold rounded-lg transition shrink-0">
-                            <i class="fa-solid fa-rotate mr-1"></i> Sync From Live Site
+                        <button type="button" id="banner-connect-gh-btn" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition shrink-0">
+                            Connect Now
                         </button>
                     </div>
+                    ` : `
+                    <div class="bg-emerald-50 border border-emerald-200 rounded-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-2 text-xs text-emerald-900">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-circle-check text-emerald-600"></i>
+                            <span><strong>Automated Publishing Active:</strong> Connected to <code class="font-mono font-bold">${escapeHTML(ghCfg.repo)}</code> (branch: <code class="font-mono">${escapeHTML(ghCfg.branch)}</code>). Every change updates <code>students_data.json</code> automatically.</span>
+                        </div>
+                        <button type="button" id="banner-view-json-btn" class="font-bold text-emerald-800 hover:underline">Inspect JSON</button>
+                    </div>
+                    `}
 
                     <!-- KPI Cards -->
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -1101,8 +1404,8 @@
                             </td>
                         </tr>`;
                     }).join('');
-                    
-                    return `
+
+                return `
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                     <div class="p-4 border-b border-slate-200 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 bg-slate-50/70">
                         <div class="relative flex-1 max-w-md">
@@ -1150,7 +1453,6 @@
                             <tbody class="divide-y divide-slate-100 text-sm">${rowsHTML}</tbody>
                         </table>
                     </div>
-
                     <div class="px-4 py-3 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
                         <div>Showing <strong>${totalFiltered === 0 ? 0 : startIdx + 1}</strong> to <strong>${Math.min(startIdx + state.pageSize, totalFiltered)}</strong> of <strong>${totalFiltered}</strong> students</div>
                         <div class="flex items-center gap-2">
@@ -1207,7 +1509,7 @@
                                 <p class="text-xs text-slate-500 mt-0.5">Select a department and incourse exam to rapidly enter or update scores across the class.</p>
                             </div>
                             <button type="button" id="save-bulk-scores-btn" class="px-5 py-2.5 bg-amhs-700 hover:bg-amhs-800 text-white text-sm font-bold rounded-xl shadow-sm transition flex items-center justify-center gap-2 shrink-0">
-                                <i class="fa-solid fa-floppy-disk"></i> Save Visible Scores
+                                <i class="fa-solid fa-floppy-disk"></i> Save &amp; Auto-Publish
                             </button>
                         </div>
 
@@ -1265,7 +1567,7 @@
                             <div class="w-11 h-11 rounded-xl bg-amhs-100 text-amhs-700 flex items-center justify-center shrink-0"><i class="fa-solid fa-file-arrow-up text-xl"></i></div>
                             <div>
                                 <h2 class="text-lg font-extrabold text-slate-900">Bulk CSV Upload (300+ Students)</h2>
-                                <p class="text-xs text-slate-500 mt-1 leading-relaxed">Upload a CSV from Excel or Google Sheets containing student credentials and incourse scores. Blank cells are ignored so previously uploaded scores remain intact.</p>
+                                <p class="text-xs text-slate-500 mt-1 leading-relaxed">Upload a CSV from Excel or Google Sheets containing student credentials and incourse scores. Blank cells are ignored so existing scores remain intact, and changes auto-publish to GitHub.</p>
                             </div>
                         </div>
                         <div class="p-5 border-2 border-dashed border-amhs-300 bg-amhs-50/40 rounded-2xl text-center space-y-3">
@@ -1283,8 +1585,8 @@
                         <div class="flex items-start gap-3.5">
                             <div class="w-11 h-11 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0"><i class="fa-solid fa-server text-xl"></i></div>
                             <div>
-                                <h2 class="text-lg font-extrabold text-slate-900">300+ Student Capacity &amp; Settings</h2>
-                                <p class="text-xs text-slate-500 mt-1 leading-relaxed">Test the portal with 300 realistic pre-clinical student records or update the Admin Passcode on this device.</p>
+                                <h2 class="text-lg font-extrabold text-slate-900">300+ Capacity &amp; Admin Settings</h2>
+                                <p class="text-xs text-slate-500 mt-1 leading-relaxed">Test the portal with 300 realistic pre-clinical student records, inspect the live JSON, or update the Admin Passcode on this device.</p>
                             </div>
                         </div>
                         <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -1307,7 +1609,7 @@
             }
 
             // =========================================================================
-            // 7. STUDENT EDITOR MODAL LOGIC
+            // 8. STUDENT EDITOR MODAL LOGIC
             // =========================================================================
             function openStudentEditorModal(studentId) {
                 const modal = document.getElementById('student-editor-modal');
@@ -1344,7 +1646,6 @@
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
             }
-
             function closeStudentEditorModal() {
                 const modal = document.getElementById('student-editor-modal');
                 modal.classList.add('hidden');
@@ -1359,7 +1660,8 @@
                 for (let i = 0; i < 4; i++) pwd += chars[Math.floor(Math.random() * chars.length)];
                 document.getElementById('edit-password').value = pwd;
             });
-document.getElementById('student-editor-form').addEventListener('submit', function (e) {
+
+            document.getElementById('student-editor-form').addEventListener('submit', function (e) {
                 e.preventDefault();
                 const editId = document.getElementById('edit-student-id').value.trim();
                 const name = document.getElementById('edit-name').value.trim();
@@ -1395,17 +1697,17 @@ document.getElementById('student-editor-form').addEventListener('submit', functi
                     showToast('Updated ' + name + ' (' + matric + ').', 'success');
                 } else {
                     state.students.push(savedRecord);
-                    showToast('Added ' + name + ' (' + matric + ').', 'success');
+                    showToast('Registered ' + name + ' (' + matric + ').', 'success');
                 }
 
                 state.students.sort(function (a, b) { return a.matric.localeCompare(b.matric); });
-                saveDraftToLocal(true);
                 closeStudentEditorModal();
                 render();
+                saveAndAutoPublish(true);
             });
 
             // =========================================================================
-            // 8. EVENT BINDING & RENDER
+            // 9. EVENT BINDING & RENDER
             // =========================================================================
             function bindEvents() {
                 const adminLoginForm = document.getElementById('admin-login-form');
@@ -1421,24 +1723,21 @@ document.getElementById('student-editor-form').addEventListener('submit', functi
                         state.view = 'admin';
                         showToast('Signed in to Directorate Admin Backend.', 'success');
                         render();
+                        loadLatestDataAutomatically();
                     };
                 }
 
-                const publishBtn = document.getElementById('publish-json-btn');
-                if (publishBtn) publishBtn.onclick = downloadPublishJSON;
+                const openGhBtn = document.getElementById('open-gh-setup-btn');
+                if (openGhBtn) openGhBtn.onclick = openGitHubSetupModal;
 
-                const reloadLiveBtn = document.getElementById('reload-live-json-btn');
-                if (reloadLiveBtn) {
-                    reloadLiveBtn.onclick = function () {
-                        showConfirmModal({
-                            title: 'Sync From Live Site',
-                            message: 'This will replace your current local draft with the live students_data.json file currently hosted on your site. Continue?',
-                            confirmText: 'Sync Now',
-                            icon: 'fa-rotate',
-                            onConfirm: function () { loadInitialData(true); }
-                        });
-                    };
-                }
+                const bannerGhBtn = document.getElementById('banner-connect-gh-btn');
+                if (bannerGhBtn) bannerGhBtn.onclick = openGitHubSetupModal;
+
+                const viewJsonBtn = document.getElementById('view-json-btn');
+                if (viewJsonBtn) viewJsonBtn.onclick = openJSONViewerModal;
+
+                const bannerJsonBtn = document.getElementById('banner-view-json-btn');
+                if (bannerJsonBtn) bannerJsonBtn.onclick = openJSONViewerModal;
 
                 const logoutBtn = document.getElementById('logout-btn');
                 if (logoutBtn) {
@@ -1476,7 +1775,6 @@ document.getElementById('student-editor-form').addEventListener('submit', functi
                         render();
                     };
                 });
-
                 const rosterSearch = document.getElementById('roster-search-input');
                 if (rosterSearch) {
                     rosterSearch.oninput = function (e) {
@@ -1534,6 +1832,7 @@ document.getElementById('student-editor-form').addEventListener('submit', functi
                         render();
                     };
                 });
+
                 document.querySelectorAll('.delete-student-btn').forEach(function (btn) {
                     btn.onclick = function () {
                         const target = state.students.find(function (s) { return s.id === btn.dataset.deleteId; });
@@ -1546,9 +1845,9 @@ document.getElementById('student-editor-form').addEventListener('submit', functi
                             icon: 'fa-trash-can',
                             onConfirm: function () {
                                 state.students = state.students.filter(function (s) { return s.id !== target.id; });
-                                saveDraftToLocal(true);
                                 showToast('Deleted ' + target.name + ' (' + target.matric + ').', 'info');
                                 render();
+                                saveAndAutoPublish(true);
                             }
                         });
                     };
@@ -1586,7 +1885,6 @@ document.getElementById('student-editor-form').addEventListener('submit', functi
                         }
                     };
                 }
-
                 const saveBulkBtn = document.getElementById('save-bulk-scores-btn');
                 if (saveBulkBtn) {
                     saveBulkBtn.onclick = function () {
@@ -1601,9 +1899,9 @@ document.getElementById('student-editor-form').addEventListener('submit', functi
                                 count++;
                             }
                         });
-                        saveDraftToLocal(true);
-                        showToast('Saved scores for ' + count + ' students. Click Publish JSON to go live!', 'success');
+                        showToast('Saved scores for ' + count + ' students.', 'success');
                         render();
+                        saveAndAutoPublish(true);
                     };
                 }
 
@@ -1670,7 +1968,7 @@ document.getElementById('student-editor-form').addEventListener('submit', functi
                 bindEvents();
             }
 
-            loadInitialData(false);
+            loadLatestDataAutomatically();
         })();
     </script>
 </body>
