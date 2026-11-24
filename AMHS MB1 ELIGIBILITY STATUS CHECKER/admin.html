@@ -17,7 +17,7 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
+                        sans: ['Inter', 'sans-serif']
                     },
                     colors: {
                         amhs: {
@@ -28,7 +28,7 @@
                             600: '#059669',
                             700: '#047857',
                             800: '#065f46',
-                            900: '#064e3b',
+                            900: '#064e3b'
                         }
                     }
                 }
@@ -148,7 +148,7 @@
                 <div class="flex items-center gap-3 ml-auto">
                     <button type="button" id="cancel-editor-modal-btn" class="px-4 py-2.5 text-sm font-semibold text-slate-600 bg-white border border-slate-300 hover:bg-slate-100 rounded-xl transition">Cancel</button>
                     <button type="submit" form="student-editor-form" class="px-5 py-2.5 text-sm font-semibold text-white bg-amhs-700 hover:bg-amhs-800 rounded-xl shadow-sm transition flex items-center gap-2">
-                        <i class="fa-solid fa-floppy-disk"></i> Save & Publish
+                        <i class="fa-solid fa-floppy-disk"></i> Save Student Record
                     </button>
                 </div>
             </div>
@@ -166,219 +166,1511 @@
                 <span>Powered by the Office of the Directorate of Studies, AMHS, 2026/2027.</span>
             </div>
             <div class="flex flex-wrap items-center justify-center gap-3 text-xs text-slate-400 no-print">
-                <span id="sync-status-badge" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500 font-semibold">
-                    <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> Connecting...
+                <span id="publish-status-badge" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Ready
                 </span>
                 <span id="footer-record-count">0 Student Records</span>
             </div>
         </div>
     </footer>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, deleteDoc, onSnapshot, collection, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    <script>
+        (function () {
+            'use strict';
 
-        // =========================================================================
-        // 1. SHARED FIREBASE CONFIGURATION (PASTE YOUR FIREBASE KEYS HERE)
-        //    Must match the exact same FIREBASE_CONFIG in index.html
-        // =========================================================================
-        const FIREBASE_CONFIG = {
-            apiKey: "PASTE_YOUR_API_KEY_HERE",
-            authDomain: "PASTE_YOUR_PROJECT_ID.firebaseapp.com",
-            projectId: "PASTE_YOUR_PROJECT_ID",
-            storageBucket: "PASTE_YOUR_PROJECT_ID.firebasestorage.app",
-            messagingSenderId: "PASTE_YOUR_SENDER_ID",
-            appId: "PASTE_YOUR_APP_ID"
-        };
+            // =========================================================================
+            // 1. CONFIGURATION & CURRICULUM STRUCTURE
+            // =========================================================================
+            const DATA_FILE_URL = 'students_data.json';
+            const LOCAL_STORAGE_KEY = 'amhs_portal_students_v2';
+            const LOCAL_PASSCODE_KEY = 'amhs_portal_admin_passcode_v2';
+            const DEFAULT_ADMIN_PASSCODE = 'AMHS';
+            const PASS_MARK = 45;
 
-        const LOCAL_STORAGE_KEY = 'amhs_portal_students_v1';
-        const LOCAL_CONFIG_KEY = 'amhs_portal_config_v1';
-        const PASS_MARK = 45;
-
-        // =========================================================================
-        // 2. CURRICULUM STRUCTURE (SHARED WITH STUDENT PAGE)
-        // =========================================================================
-        const DEPARTMENTS = [
-            {
-                id: 'anatomy',
-                name: 'ANATOMY',
-                subtitle: 'Gross Anatomy, Histology & Embryology',
-                badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-200',
-                headerBg: 'bg-emerald-700',
-                icon: 'fa-bone',
-                courses: [
-                    { key: 'ana_limbs', code: 'A', label: 'UPPER & LOWER LIMBS' },
-                    { key: 'ana_thorax', code: 'B', label: 'THORAX' },
-                    { key: 'ana_abdomen', code: 'C', label: 'ABDOMEN' },
-                    { key: 'ana_pelvis', code: 'D', label: 'PELVIS AND PERINEUM' },
-                    { key: 'ana_head_neck', code: 'E', label: 'HEAD AND NECK' },
-                    { key: 'ana_neuro', code: 'F', label: 'NEUROANATOMY' },
-                    { key: 'ana_gen_histo', code: 'G', label: 'GENERAL HISTOLOGY/EMBRYOLOGY' },
-                    { key: 'ana_sys_histo', code: 'H', label: 'SYSTEMIC HISTOLOGY/EMBRYOLOGY' }
-                ]
-            },
-            {
-                id: 'biochemistry',
-                name: 'MEDICAL BIOCHEMISTRY',
-                subtitle: 'Pre-Clinical Biochemistry & OSPE',
-                badgeClass: 'bg-sky-50 text-sky-800 border-sky-200',
-                headerBg: 'bg-sky-700',
-                icon: 'fa-flask-vial',
-                courses: [
-                    { key: 'bch_first', code: 'A', label: 'FIRST INCOURSE' },
-                    { key: 'bch_second', code: 'B', label: 'SECOND INCOURSE' },
-                    { key: 'bch_third', code: 'C', label: 'THIRD INCOURSE' },
-                    { key: 'bch_fourth', code: 'D', label: 'FOURTH INCOURSE' },
-                    { key: 'bch_ospe', code: 'E', label: 'PRACTICAL AND OSPE' }
-                ]
-            },
-            {
-                id: 'physiology',
-                name: 'PHYSIOLOGY',
-                subtitle: 'Systemic & Neurophysiology',
-                badgeClass: 'bg-amber-50 text-amber-800 border-amber-200',
-                headerBg: 'bg-amber-600',
-                icon: 'fa-heart-pulse',
-                courses: [
-                    { key: 'phy_gen_nm', code: 'A', label: 'GENERAL PHYSIOLOGY, NERVE AND MUSCLE' },
-                    { key: 'phy_blood_cvs', code: 'B', label: 'BLOOD AND CVS' },
-                    { key: 'phy_resp_renal', code: 'C', label: 'RESPIRATORY & RENAL PHYSIOLOGY' },
-                    { key: 'phy_git', code: 'D', label: 'GIT' },
-                    { key: 'phy_endo_repro', code: 'E', label: 'ENDOCRINOLOGY & REPRODUCTIVE PHYSIOLOGY' },
-                    { key: 'phy_neuro', code: 'F', label: 'NEUROPHYSIOLOGY' }
-                ]
-            }
-        ];
-
-        const ALL_COURSES = DEPARTMENTS.flatMap(dept =>
-            dept.courses.map(c => ({ ...c, deptId: dept.id, deptName: dept.name }))
-        );
-
-        function createEmptyScores() {
-            const obj = {};
-            ALL_COURSES.forEach(c => { obj[c.key] = null; });
-            return obj;
-        }
-
-        // =========================================================================
-        // 3. STATE & SHARED BACKEND CONNECTION
-        // =========================================================================
-        const isFirebaseConfigured = Boolean(
-            FIREBASE_CONFIG.apiKey &&
-            !FIREBASE_CONFIG.apiKey.includes('PASTE_YOUR_') &&
-            FIREBASE_CONFIG.projectId &&
-            !FIREBASE_CONFIG.projectId.includes('PASTE_YOUR_')
-        );
-
-        let db = null;
-
-        const state = {
-            view: 'admin-login', // 'admin-login' | 'admin' | 'preview'
-            isAdminAuthenticated: false,
-            adminPasscode: 'AMHS-DOS-2026',
-            students: [],
-            previewStudentId: null,
-            // Admin UI controls
-            adminTab: 'roster', // 'roster' | 'bulk-score' | 'csv-import'
-            searchQuery: '',
-            filterStatus: 'all',
-            currentPage: 1,
-            pageSize: 25,
-            bulkSelectedDept: 'anatomy',
-            bulkSelectedCourse: 'ana_limbs',
-            bulkSearchQuery: '',
-            bulkPage: 1,
-            showPasswords: false
-        };
-
-        function updateSyncBadge(mode) {
-            const badge = document.getElementById('sync-status-badge');
-            if (!badge) return;
-            if (mode === 'cloud') {
-                badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold';
-                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Cloud Database Live';
-            } else if (mode === 'saving') {
-                badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200 font-semibold';
-                badge.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-[10px]"></i> Syncing...';
-            } else {
-                badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-semibold';
-                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span> Local Test Mode';
-            }
-        }
-
-        function saveLocalStudents() {
-            try {
-                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state.students));
-            } catch (err) {
-                console.error('Local save error:', err);
-            }
-        }
-
-        function loadLocalData() {
-            try {
-                const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
-                if (raw) {
-                    state.students = JSON.parse(raw);
-                    state.students.sort((a, b) => a.matric.localeCompare(b.matric));
+            const DEPARTMENTS = [
+                {
+                    id: 'anatomy',
+                    name: 'ANATOMY',
+                    subtitle: 'Gross Anatomy, Histology & Embryology',
+                    badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+                    headerBg: 'bg-emerald-700',
+                    icon: 'fa-bone',
+                    courses: [
+                        { key: 'ana_limbs', code: 'A', label: 'UPPER & LOWER LIMBS' },
+                        { key: 'ana_thorax', code: 'B', label: 'THORAX' },
+                        { key: 'ana_abdomen', code: 'C', label: 'ABDOMEN' },
+                        { key: 'ana_pelvis', code: 'D', label: 'PELVIS AND PERINEUM' },
+                        { key: 'ana_head_neck', code: 'E', label: 'HEAD AND NECK' },
+                        { key: 'ana_neuro', code: 'F', label: 'NEUROANATOMY' },
+                        { key: 'ana_gen_histo', code: 'G', label: 'GENERAL HISTOLOGY/EMBRYOLOGY' },
+                        { key: 'ana_sys_histo', code: 'H', label: 'SYSTEMIC HISTOLOGY/EMBRYOLOGY' }
+                    ]
+                },
+                {
+                    id: 'biochemistry',
+                    name: 'MEDICAL BIOCHEMISTRY',
+                    subtitle: 'Pre-Clinical Biochemistry & OSPE',
+                    badgeClass: 'bg-sky-50 text-sky-800 border-sky-200',
+                    headerBg: 'bg-sky-700',
+                    icon: 'fa-flask-vial',
+                    courses: [
+                        { key: 'bch_first', code: 'A', label: 'FIRST INCOURSE' },
+                        { key: 'bch_second', code: 'B', label: 'SECOND INCOURSE' },
+                        { key: 'bch_third', code: 'C', label: 'THIRD INCOURSE' },
+                        { key: 'bch_fourth', code: 'D', label: 'FOURTH INCOURSE' },
+                        { key: 'bch_ospe', code: 'E', label: 'PRACTICAL AND OSPE' }
+                    ]
+                },
+                {
+                    id: 'physiology',
+                    name: 'PHYSIOLOGY',
+                    subtitle: 'Systemic & Neurophysiology',
+                    badgeClass: 'bg-amber-50 text-amber-800 border-amber-200',
+                    headerBg: 'bg-amber-600',
+                    icon: 'fa-heart-pulse',
+                    courses: [
+                        { key: 'phy_gen_nm', code: 'A', label: 'GENERAL PHYSIOLOGY, NERVE AND MUSCLE' },
+                        { key: 'phy_blood_cvs', code: 'B', label: 'BLOOD AND CVS' },
+                        { key: 'phy_resp_renal', code: 'C', label: 'RESPIRATORY & RENAL PHYSIOLOGY' },
+                        { key: 'phy_git', code: 'D', label: 'GIT' },
+                        { key: 'phy_endo_repro', code: 'E', label: 'ENDOCRINOLOGY & REPRODUCTIVE PHYSIOLOGY' },
+                        { key: 'phy_neuro', code: 'F', label: 'NEUROPHYSIOLOGY' }
+                    ]
                 }
-                const cfgRaw = localStorage.getItem(LOCAL_CONFIG_KEY);
-                if (cfgRaw) {
-                    const cfg = JSON.parse(cfgRaw);
-                    if (cfg.adminPasscode) state.adminPasscode = cfg.adminPasscode;
-                }
-            } catch (err) {
-                console.error('Local load error:', err);
+            ];
+
+            const ALL_COURSES = DEPARTMENTS.reduce(function (acc, dept) {
+                dept.courses.forEach(function (c) {
+                    acc.push({
+                        key: c.key,
+                        code: c.code,
+                        label: c.label,
+                        deptId: dept.id,
+                        deptName: dept.name
+                    });
+                });
+                return acc;
+            }, []);
+
+            function createEmptyScores() {
+                const obj = {};
+                ALL_COURSES.forEach(function (c) { obj[c.key] = null; });
+                return obj;
             }
-        }
 
-        async function initBackend() {
-            if (!isFirebaseConfigured) {
-                loadLocalData();
-                updateSyncBadge('local');
-                render();
-                return;
+            // =========================================================================
+            // 2. APPLICATION STATE & STORAGE
+            // =========================================================================
+            const state = {
+                view: 'admin-login', // 'admin-login' | 'admin' | 'preview'
+                isAdminAuthenticated: false,
+                adminPasscode: localStorage.getItem(LOCAL_PASSCODE_KEY) || DEFAULT_ADMIN_PASSCODE,
+                students: [],
+                previewStudentId: null,
+                hasUnpublishedChanges: false,
+                // Admin UI controls
+                adminTab: 'roster', // 'roster' | 'bulk-score' | 'csv-import'
+                searchQuery: '',
+                filterStatus: 'all',
+                currentPage: 1,
+                pageSize: 25,
+                bulkSelectedDept: 'anatomy',
+                bulkSelectedCourse: 'ana_limbs',
+                bulkSearchQuery: '',
+                bulkPage: 1,
+                showPasswords: false
+            };
+
+            function saveDraftToLocal(markUnpublished) {
+                try {
+                    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state.students));
+                    if (markUnpublished) {
+                        state.hasUnpublishedChanges = true;
+                        updatePublishBadge();
+                    }
+                } catch (err) {
+                    console.error('Local save failed:', err);
+                }
             }
 
-            try {
-                const app = initializeApp(FIREBASE_CONFIG);
-                db = getFirestore(app);
-                updateSyncBadge('cloud');
-
-                // Load or initialize admin config
-                const cfgRef = doc(db, 'amhs_config', 'settings');
-                const cfgSnap = await getDoc(cfgRef);
-                if (cfgSnap.exists() && cfgSnap.data().adminPasscode) {
-                    state.adminPasscode = cfgSnap.data().adminPasscode;
+            function updatePublishBadge() {
+                const badge = document.getElementById('publish-status-badge');
+                if (!badge) return;
+                if (state.hasUnpublishedChanges) {
+                    badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-300 font-semibold';
+                    badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> Unpublished Changes — Click Publish JSON';
+                } else {
+                    badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold';
+                    badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Synced &amp; Ready';
                 }
+            }
 
-                // Live listener for all students
-                onSnapshot(
-                    collection(db, 'amhs_students'),
-                    (querySnap) => {
-                        const fetched = [];
-                        querySnap.forEach((d) => {
-                            const data = d.data();
-                            fetched.push({
-                                id: d.id,
-                                name: data.name || '',
-                                matric: data.matric || '',
-                                password: data.password || '',
-                                scores: { ...createEmptyScores(), ...(data.scores || {}) },
-                                updatedAt: data.updatedAt || ''
-                            });
-                        });
-                        fetched.sort((a, b) => a.matric.localeCompare(b.matric));
-                        state.students = fetched;
-                        updateSyncBadge('cloud');
-
-                        const activeEl = document.activeElement;
-                        const isTypingBulk = activeEl && activeEl.classList.contains('bulk-score-input');
-                        if (!isTypingBulk) {
-                            render();
-                        } else {
-                            updateFooterCount();
+            async function loadInitialData(forceFromLiveFile) {
+                if (!forceFromLiveFile) {
+                    try {
+                        const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+                        if (raw) {
+                            const parsed = JSON.parse(raw);
+                            if (Array.isArray(parsed) && parsed.length > 0) {
+                                state.students = parsed;
+                                state.students.sort(function (a, b) { return a.matric.localeCompare(b.matric); });
+                                render();
+                                return;
+                            }
                         }
-                    },
-                    (err) => {
-                        console.error('Firestore sync error:', err);
-                        showToast('Co
+                    } catch (err) {
+                        console.error('Local load error:', err);
+                    }
+                }
+
+                try {
+                    const response = await fetch(DATA_FILE_URL + '?t=' + Date.now(), { cache: 'no-store' });
+                    if (response.ok) {
+                        const json = await response.json();
+                        if (Array.isArray(json)) {
+                            state.students = json;
+                            state.students.sort(function (a, b) { return a.matric.localeCompare(b.matric); });
+                            state.hasUnpublishedChanges = false;
+                            saveDraftToLocal(false);
+                            if (forceFromLiveFile) {
+                                showToast('Reloaded ' + state.students.length + ' students from live students_data.json.', 'success');
+                            }
+                            render();
+                            return;
+                        }
+                    }
+                } catch (err) {
+                    if (forceFromLiveFile) {
+                        showToast('Could not fetch students_data.json (works best on Netlify or Live Server).', 'error');
+                    }
+                }
+                render();
+            }
+
+            function downloadPublishJSON() {
+                const jsonString = JSON.stringify(state.students, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'students_data.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                state.hasUnpublishedChanges = false;
+                updatePublishBadge();
+                showToast('Downloaded students_data.json! Replace it in your GitHub repo and push to update Netlify.', 'success');
+            }
+
+// =========================================================================
+            // 3. AMHS LOGO SVG
+            // =========================================================================
+            let logoUidCounter = 0;
+            function getAMHSLogoSVG(className) {
+                const cls = className || 'w-20 h-20';
+                const uid = ++logoUidCounter;
+                return (
+                    '<svg viewBox="0 0 240 248" class="' + cls + ' select-none shrink-0" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Association of Muslim Health Students Logo">' +
+                    '<defs>' +
+                    '<path id="amhsTopArc_' + uid + '" d="M 41,115 A 79,79 0 0,1 199,115" />' +
+                    '<path id="amhsBottomArc_' + uid + '" d="M 43,125 A 77,77 0 0,0 197,125" />' +
+                    '</defs>' +
+                    '<circle cx="120" cy="112" r="98" fill="#ffffff" stroke="#15803d" stroke-width="4.5"/>' +
+                    '<circle cx="120" cy="112" r="71" fill="#ffffff" stroke="#16a34a" stroke-width="2.5"/>' +
+                    '<text font-family="Inter, Arial, sans-serif" font-size="14.5" font-weight="800" fill="#1e293b" letter-spacing="0.8">' +
+                    '<textPath href="#amhsTopArc_' + uid + '" startOffset="50%" text-anchor="middle">ASSOCIATION OF MUSLIM</textPath>' +
+                    '</text>' +
+                    '<text font-family="Inter, Arial, sans-serif" font-size="15.5" font-weight="800" fill="#1e293b" letter-spacing="1.2">' +
+                    '<textPath href="#amhsBottomArc_' + uid + '" startOffset="50%" text-anchor="middle">HEALTH STUDENTS</textPath>' +
+                    '</text>' +
+                    '<polygon points="35,105 37.5,111 44,111 38.8,115 40.8,121 35,117.3 29.2,121 31.2,115 26,111 32.5,111" fill="#facc15" stroke="#a16207" stroke-width="0.8"/>' +
+                    '<polygon points="205,105 207.5,111 214,111 208.8,115 210.8,121 205,117.3 199.2,121 201.2,115 196,111 202.5,111" fill="#facc15" stroke="#a16207" stroke-width="0.8"/>' +
+                    '<path d="M 92,68 A 48,48 0 1,0 165,148 A 39,39 0 1,1 92,68 Z" fill="#16a34a"/>' +
+                    '<g transform="translate(0, 3)">' +
+                    '<path d="M 78,100 Q 99,93 120,101 L 120,141 Q 99,134 76,141 Z" fill="#ffffff" stroke="#1e293b" stroke-width="1.8" stroke-linejoin="round"/>' +
+                    '<path d="M 120,101 Q 141,93 162,100 L 164,141 Q 141,134 120,141 Z" fill="#ffffff" stroke="#1e293b" stroke-width="1.8" stroke-linejoin="round"/>' +
+                    '<path d="M 76,141 Q 99,138 120,145 Q 141,138 164,141" fill="none" stroke="#1e293b" stroke-width="1.6"/>' +
+                    '</g>' +
+                    '<line x1="120" y1="54" x2="120" y2="75" stroke="#1e293b" stroke-width="1.5"/>' +
+                    '<polygon points="120,42 122.4,48 129,48 123.7,52 125.7,58 120,54.3 114.3,58 116.3,52 111,48 117.6,48" fill="#dc2626"/>' +
+                    '<rect x="115" y="75" width="10" height="36" rx="1.5" fill="#0f172a"/>' +
+                    '<rect x="110" y="109" width="20" height="5" rx="1" fill="#0f172a"/>' +
+                    '<path d="M 103,103 C 92,85 90,62 112,67 C 128,70 135,74 146,72 C 158,70 162,82 154,105" fill="none" stroke="#0f172a" stroke-width="3.2" stroke-linecap="round"/>' +
+                    '<circle cx="151" cy="110" r="8.5" fill="#94a3b8" stroke="#1e293b" stroke-width="1.8"/>' +
+                    '<circle cx="151" cy="110" r="4" fill="#e2e8f0" stroke="#475569" stroke-width="1"/>' +
+                    '<path d="M 97,120 C 94,105 110,104 123,115" fill="none" stroke="#0f172a" stroke-width="3.2" stroke-linecap="round"/>' +
+                    '<path d="M 97,120 C 97,138 106,151 118,154" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round"/>' +
+                    '<path d="M 123,115 C 134,126 142,140 134,151" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round"/>' +
+                    '<circle cx="119" cy="154" r="2.2" fill="#1e293b"/>' +
+                    '<circle cx="133" cy="151" r="2.2" fill="#1e293b"/>' +
+                    '<path d="M 12,196 L 34,209 L 16,225 L 44,224 L 46,204 Z" fill="#15803d"/>' +
+                    '<path d="M 228,196 L 206,209 L 224,225 L 196,224 L 194,204 Z" fill="#15803d"/>' +
+                    '<path d="M 35,192 Q 120,218 205,192 L 200,222 Q 120,245 40,222 Z" fill="#16a34a" stroke="#14532d" stroke-width="1.5"/>' +
+                    '<text x="120" y="218" font-family="Inter, Arial, sans-serif" font-size="11.5" font-weight="800" fill="#fef08a" text-anchor="middle" letter-spacing="0.2">' +
+                    'Islam, Knowledge and Health' +
+                    '</text>' +
+                    '</svg>'
+                );
+            }
+
+            // =========================================================================
+            // 4. ELIGIBILITY ENGINE & UTILITIES
+            // =========================================================================
+            function evaluateStudent(student) {
+                const scores = student.scores || {};
+                const deptResults = {};
+                let totalWrittenCount = 0;
+                const totalPossibleCount = ALL_COURSES.length;
+                const deptAverages = [];
+                const failingDepts = [];
+
+                DEPARTMENTS.forEach(function (dept) {
+                    let sum = 0;
+                    let written = 0;
+                    dept.courses.forEach(function (c) {
+                        const val = scores[c.key];
+                        if (val !== null && val !== undefined && val !== '' && !isNaN(Number(val))) {
+                            sum += Number(val);
+                            written++;
+                            totalWrittenCount++;
+                        }
+                    });
+
+                    const avg = written > 0 ? Number((sum / written).toFixed(2)) : null;
+                    let status = 'pending';
+                    if (avg !== null) {
+                        deptAverages.push(avg);
+                        if (avg >= PASS_MARK) {
+                            status = 'eligible';
+                        } else {
+                            status = 'not_eligible';
+                            failingDepts.push(dept.name);
+                        }
+                    }
+
+                    deptResults[dept.id] = { avg: avg, written: written, total: dept.courses.length, status: status };
+                });
+
+                const overallAvg = deptAverages.length > 0
+                    ? Number((deptAverages.reduce(function (a, b) { return a + b; }, 0) / deptAverages.length).toFixed(2))
+                    : null;
+
+                let overallStatus = 'pending';
+                let statusLabel = 'PENDING SCORES';
+                let statusDetail = 'No incourse scores have been uploaded yet.';
+
+                if (totalWrittenCount > 0) {
+                    if (failingDepts.length === 0 && overallAvg >= PASS_MARK) {
+                        overallStatus = 'eligible';
+                        statusLabel = 'ELIGIBLE';
+                        statusDetail = deptAverages.length === 3
+                            ? 'Meets the minimum 45% average across Anatomy, Medical Biochemistry, and Physiology.'
+                            : 'Currently meets the ≥ 45% threshold across ' + deptAverages.length + ' of 3 departments recorded so far.';
+                    } else {
+                        overallStatus = 'not_eligible';
+                        statusLabel = 'NOT ELIGIBLE';
+                        statusDetail = failingDepts.length > 0
+                            ? 'Below 45% minimum average in: ' + failingDepts.join(', ') + '.'
+                            : 'Overall pre-clinical average is below 45%.';
+                    }
+                }
+
+                return {
+                    deptResults: deptResults,
+                    overallAvg: overallAvg,
+                    overallStatus: overallStatus,
+                    statusLabel: statusLabel,
+                    statusDetail: statusDetail,
+                    totalWrittenCount: totalWrittenCount,
+                    totalPossibleCount: totalPossibleCount
+                };
+            }
+
+            function escapeHTML(str) {
+                if (str === null || str === undefined) return '';
+                return String(str)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
+            function sanitizeDocId(matric) {
+                return 'STU_' + String(matric).trim().toUpperCase().replace(/[^A-Z0-9]/g, '_');
+            }
+
+            function parseScoreValue(raw) {
+                if (raw === null || raw === undefined) return null;
+                const trimmed = String(raw).trim();
+                if (trimmed === '' || trimmed === '-' || trimmed.toUpperCase() === 'N/A') return null;
+                const num = Number(trimmed);
+                if (isNaN(num)) return null;
+                return Math.min(100, Math.max(0, Number(num.toFixed(2))));
+            }
+
+            function showToast(message, type) {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                const styles = {
+                    success: 'bg-emerald-700 text-white border-emerald-800',
+                    error: 'bg-rose-600 text-white border-rose-700',
+                    info: 'bg-slate-800 text-white border-slate-900'
+                };
+                const icons = {
+                    success: 'fa-circle-check',
+                    error: 'fa-circle-exclamation',
+                    info: 'fa-circle-info'
+                };
+                const t = type || 'success';
+                toast.className = 'pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border text-sm font-medium transition-all duration-300 ' + (styles[t] || styles.info);
+                toast.innerHTML = '<i class="fa-solid ' + (icons[t] || icons.info) + '"></i><span class="flex-1">' + escapeHTML(message) + '</span>';
+                container.appendChild(toast);
+                setTimeout(function () {
+                    toast.classList.add('opacity-0', '-translate-y-2');
+                    setTimeout(function () { toast.remove(); }, 300);
+                }, 4000);
+            }
+
+            function showConfirmModal(opts) {
+                const modal = document.getElementById('custom-modal');
+                document.getElementById('modal-title').textContent = opts.title || 'Confirm';
+                document.getElementById('modal-message').textContent = opts.message || '';
+                const confirmBtn = document.getElementById('modal-confirm-btn');
+                const cancelBtn = document.getElementById('modal-cancel-btn');
+                document.getElementById('modal-icon').className = 'fa-solid ' + (opts.icon || 'fa-circle-question') + ' text-xl';
+                confirmBtn.textContent = opts.confirmText || 'Confirm';
+                confirmBtn.className = 'px-4 py-2.5 text-sm font-semibold text-white rounded-xl shadow-sm transition ' + (opts.confirmClass || 'bg-amhs-700 hover:bg-amhs-800');
+
+                const close = function () {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                };
+                cancelBtn.onclick = close;
+                confirmBtn.onclick = function () {
+                    close();
+                    if (opts.onConfirm) opts.onConfirm();
+                };
+
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+
+            function statusBadgeHTML(status) {
+                if (status === 'eligible') {
+                    return '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200"><i class="fa-solid fa-circle-check"></i> ELIGIBLE</span>';
+                }
+                if (status === 'not_eligible') {
+                    return '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-200"><i class="fa-solid fa-circle-xmark"></i> NOT ELIGIBLE</span>';
+                }
+                return '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200"><i class="fa-solid fa-clock"></i> PENDING</span>';
+            }
+
+            function updateFooterCount() {
+                const el = document.getElementById('footer-record-count');
+                if (el) {
+                    el.innerHTML = '<i class="fa-solid fa-users text-amhs-600 mr-1"></i> ' + state.students.length + ' Student Record' + (state.students.length === 1 ? '' : 's');
+                }
+            }
+            
+             // =========================================================================
+            // 5. CSV IMPORT / EXPORT & 300-STUDENT GENERATOR
+            // =========================================================================
+            function escapeCSVCell(val) {
+                if (val === null || val === undefined) return '';
+                const str = String(val);
+                if (str.indexOf(',') !== -1 || str.indexOf('"') !== -1 || str.indexOf('\n') !== -1) {
+                    return '"' + str.replace(/"/g, '""') + '"';
+                }
+                return str;
+            }
+
+            function parseCSVLine(line, delimiter) {
+                const sep = delimiter || ',';
+                const result = [];
+                let current = '';
+                let inQuotes = false;
+                for (let i = 0; i < line.length; i++) {
+                    const ch = line[i];
+                    if (inQuotes) {
+                        if (ch === '"' && line[i + 1] === '"') {
+                            current += '"';
+                            i++;
+                        } else if (ch === '"') {
+                            inQuotes = false;
+                        } else {
+                            current += ch;
+                        }
+                    } else {
+                        if (ch === '"') {
+                            inQuotes = true;
+                        } else if (ch === sep) {
+                            result.push(current.trim());
+                            current = '';
+                        } else {
+                            current += ch;
+                        }
+                    }
+                }
+                result.push(current.trim());
+                return result;
+            }
+
+            function downloadCSVFile(filename, csvContent) {
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            function downloadTemplateCSV() {
+                const headers = ['MATRIC NUMBER', 'FULL NAME', 'PASSWORD'].concat(
+                    ALL_COURSES.map(function (c) { return c.deptName + ' - ' + c.label; })
+                );
+                const sampleRow = ['2023/1001', 'ABDULLAHI, Ridwan Olamide', 'AMHS1001', '58', '62', '', '', '', '', '65', '', '52', '60', '', '', '68', '61', '55', '', '', '', ''];
+                const csv = [
+                    headers.map(escapeCSVCell).join(','),
+                    sampleRow.map(escapeCSVCell).join(',')
+                ].join('\n');
+                downloadCSVFile('AMHS_1st_MB_Upload_Template.csv', csv);
+                showToast('CSV upload template downloaded.', 'success');
+            }
+
+            function exportMasterReportCSV() {
+                const headers = ['MATRIC NUMBER', 'FULL NAME', 'PASSWORD']
+                    .concat(ALL_COURSES.map(function (c) { return c.deptName + ' - ' + c.label; }))
+                    .concat(['ANATOMY AVG (%)', 'BIOCHEMISTRY AVG (%)', 'PHYSIOLOGY AVG (%)', 'OVERALL AVG (%)', 'ELIGIBILITY STATUS']);
+
+                const rows = state.students.map(function (stu) {
+                    const ev = evaluateStudent(stu);
+                    const scoreCells = ALL_COURSES.map(function (c) {
+                        const v = (stu.scores || {})[c.key];
+                        return (v !== null && v !== undefined) ? v : '';
+                    });
+                    const rowArr = [stu.matric, stu.name, stu.password]
+                        .concat(scoreCells)
+                        .concat([
+                            ev.deptResults.anatomy.avg !== null ? ev.deptResults.anatomy.avg : '',
+                            ev.deptResults.biochemistry.avg !== null ? ev.deptResults.biochemistry.avg : '',
+                            ev.deptResults.physiology.avg !== null ? ev.deptResults.physiology.avg : '',
+                            ev.overallAvg !== null ? ev.overallAvg : '',
+                            ev.statusLabel
+                        ]);
+                    return rowArr.map(escapeCSVCell).join(',');
+                });
+
+                const csv = [headers.map(escapeCSVCell).join(',')].concat(rows).join('\n');
+                downloadCSVFile('AMHS_1st_MB_Master_Report_' + new Date().toISOString().split('T')[0] + '.csv', csv);
+                showToast('Exported ' + state.students.length + ' student records to CSV.', 'success');
+            }
+
+            function processCSVUpload(csvText) {
+                try {
+                    const cleanText = csvText.replace(/^\uFEFF/, '');
+                    const lines = cleanText.split(/\r?\n/).filter(function (l) { return l.trim().length > 0; });
+                    if (lines.length < 2) {
+                        showToast('CSV must contain a header row and at least one student row.', 'error');
+                        return;
+                    }
+
+                    // Auto-detect comma vs semicolon delimiter (common in some Excel locales)
+                    const headerLine = lines[0];
+                    const delimiter = (headerLine.split(';').length > headerLine.split(',').length) ? ';' : ',';
+                    const headers = parseCSVLine(headerLine, delimiter).map(function (h) { return h.toUpperCase().trim(); });
+
+                    const matricIdx = headers.findIndex(function (h) { return h.indexOf('MATRIC') !== -1; });
+                    const nameIdx = headers.findIndex(function (h) { return h.indexOf('NAME') !== -1; });
+                    const pwdIdx = headers.findIndex(function (h) { return h.indexOf('PASS') !== -1; });
+
+                    if (matricIdx === -1) {
+                        showToast('Missing "MATRIC NUMBER" column in CSV header.', 'error');
+                        return;
+                    }
+
+                    const courseColMap = {};
+                    ALL_COURSES.forEach(function (c) {
+                        const normLabel = c.label.toUpperCase().replace('&', 'AND');
+                        const idx = headers.findIndex(function (h) {
+                            const normH = h.replace('&', 'AND');
+                            return h === c.key.toUpperCase() || h.indexOf(c.label.toUpperCase()) !== -1 || normH.indexOf(normLabel) !== -1;
+                        });
+                        if (idx !== -1) courseColMap[c.key] = idx;
+                    });
+
+                    let addedCount = 0;
+                    let updatedCount = 0;
+                    const today = new Date().toISOString().split('T')[0];
+
+                    for (let i = 1; i < lines.length; i++) {
+                        const cols = parseCSVLine(lines[i], delimiter);
+                        const rawMatric = (cols[matricIdx] || '').trim().toUpperCase();
+                        if (!rawMatric) continue;
+
+                        const existingIdx = state.students.findIndex(function (s) {
+                            return s.matric.toUpperCase() === rawMatric;
+                        });
+
+                        if (existingIdx >= 0) {
+                            const existing = state.students[existingIdx];
+                            if (nameIdx !== -1 && cols[nameIdx]) existing.name = cols[nameIdx].trim();
+                            if (pwdIdx !== -1 && cols[pwdIdx]) existing.password = cols[pwdIdx].trim();
+                            Object.keys(courseColMap).forEach(function (courseKey) {
+                                const parsed = parseScoreValue(cols[courseColMap[courseKey]]);
+                                if (parsed !== null) existing.scores[courseKey] = parsed;
+                            });
+                            existing.updatedAt = today;
+                            updatedCount++;
+                        } else {
+                            const newScores = createEmptyScores();
+                            Object.keys(courseColMap).forEach(function (courseKey) {
+                                newScores[courseKey] = parseScoreValue(cols[courseColMap[courseKey]]);
+                            });
+                            const name = (nameIdx !== -1 && cols[nameIdx]) ? cols[nameIdx].trim() : ('Student ' + rawMatric);
+                            const password = (pwdIdx !== -1 && cols[pwdIdx]) ? cols[pwdIdx].trim() : ('AMHS' + rawMatric.replace(/[^A-Z0-9]/g, '').slice(-4));
+                            state.students.push({
+                                id: sanitizeDocId(rawMatric),
+                                name: name,
+                                matric: rawMatric,
+                                password: password,
+                                scores: newScores,
+                                updatedAt: today
+                            });
+                            addedCount++;
+                        }
+                    }
+
+                    state.students.sort(function (a, b) { return a.matric.localeCompare(b.matric); });
+                    state.currentPage = 1;
+                    saveDraftToLocal(true);
+                    showToast('CSV Imported: ' + addedCount + ' added, ' + updatedCount + ' updated. Click Publish JSON to go live!', 'success');
+                    render();
+                } catch (err) {
+                    console.error('CSV parse error:', err);
+                    showToast('Failed to parse CSV file. Please check formatting.', 'error');
+                }
+            }
+
+            function generate300DemoStudents() {
+                const surnames = ['ADEBAYO', 'ABDULLAHI', 'IBRAHIM', 'YUSUF', 'OLAWALE', 'SULAIMON', 'BALOGUN', 'RAJI', 'KAREEM', 'TIJANI', 'MUSA', 'HASSAN', 'USMAN', 'LAWAL', 'SANUSI', 'OPADOTUN', 'SALAM', 'BADMUS', 'ADEWALE', 'AKINOLA'];
+                const firstNames = ['Muhammad', 'Aishah', 'Zainab', 'Ridwan', 'Fatimah', 'Ibrahim', 'Maryam', 'Abdulrahman', 'Khadijah', 'Ismail', 'Hafsah', 'Umar', 'Halimah', 'Sodiq', 'Ruqayyah', 'Tunde', 'Aminah', 'Farooq', 'Bilkis', 'Lukman'];
+                const today = new Date().toISOString().split('T')[0];
+
+                let created = 0;
+                for (let n = 1001; n <= 1300; n++) {
+                    const matric = '2023/' + n;
+                    if (state.students.some(function (s) { return s.matric === matric; })) continue;
+                    const sName = surnames[n % surnames.length];
+                    const fName = firstNames[(n * 3) % firstNames.length];
+                    const base = 36 + ((n * 17) % 42);
+                    const sc = createEmptyScores();
+                    sc.ana_limbs = Math.min(95, base + (n % 9));
+                    sc.ana_thorax = Math.min(95, base + ((n * 2) % 11) - 3);
+                    sc.ana_abdomen = Math.min(95, base + ((n * 5) % 8) - 2);
+                    sc.ana_gen_histo = Math.min(95, base + (n % 12));
+                    sc.bch_first = Math.min(95, base + ((n * 3) % 10) - 2);
+                    sc.bch_second = Math.min(95, base + (n % 7));
+                    sc.bch_ospe = Math.min(95, base + 5);
+                    sc.phy_gen_nm = Math.min(95, base + ((n * 4) % 9) - 1);
+                    sc.phy_blood_cvs = Math.min(95, base + (n % 8) - 2);
+                    sc.phy_resp_renal = Math.min(95, base + ((n * 2) % 6));
+
+                    state.students.push({
+                        id: sanitizeDocId(matric),
+                        name: sName + ', ' + fName,
+                        matric: matric,
+                        password: 'AMHS' + n,
+                        scores: sc,
+                        updatedAt: today
+                    });
+                    created++;
+                }
+
+                state.students.sort(function (a, b) { return a.matric.localeCompare(b.matric); });
+                saveDraftToLocal(true);
+                showToast('Loaded ' + created + ' sample students (Total: ' + state.students.length + ').', 'success');
+                render();
+            }
+            
+            // =========================================================================
+            // 6. VIEWS
+            // =========================================================================
+            function renderAdminLoginView() {
+                return `
+                <div class="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-slate-900 via-amhs-900 to-slate-900">
+                    <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200/80 p-7 sm:p-9">
+                        <div class="flex flex-col items-center text-center">
+                            <div class="bg-white p-1.5 rounded-full shadow-md border border-slate-100 mb-4">
+                                ${getAMHSLogoSVG('w-20 h-20')}
+                            </div>
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900 text-emerald-300 text-[11px] font-bold tracking-wider uppercase mb-2">
+                                <i class="fa-solid fa-shield-halved"></i> Restricted Backend
+                            </span>
+                            <h1 class="text-2xl font-extrabold text-slate-900">Directorate Admin Login</h1>
+                            <p class="text-xs sm:text-sm text-slate-500 mt-1">
+                                Authorized personnel of the Office of the Directorate of Studies, AMHS only.
+                            </p>
+                        </div>
+
+                        <form id="admin-login-form" class="mt-6 space-y-4">
+                            <div>
+                                <label for="admin-passcode-input" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Directorate Admin Passcode</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                                        <i class="fa-solid fa-key"></i>
+                                    </span>
+                                    <input type="password" id="admin-passcode-input" required placeholder="Enter admin passcode"
+                                        class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-amhs-500 focus:bg-white transition">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="w-full py-3.5 px-5 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl shadow-md transition flex items-center justify-center gap-2 text-sm">
+                                <i class="fa-solid fa-lock-open"></i>
+                                <span>Access Admin Backend</span>
+                            </button>
+                        </form>
+
+                        <div class="mt-6 pt-5 border-t border-slate-200 text-center">
+                            <a href="index.html" class="inline-flex items-center gap-1.5 text-xs font-semibold text-amhs-700 hover:text-amhs-900 transition">
+                                <i class="fa-solid fa-arrow-left"></i> Go to Student Portal
+                            </a>
+                        </div>
+                    </div>
+                </div>`;
+            }
+
+            function renderStudentPreviewView() {
+                const student = state.students.find(function (s) { return s.id === state.previewStudentId; });
+                if (!student) {
+                    state.view = 'admin';
+                    return renderAdminView();
+                }
+                const evalData = evaluateStudent(student);
+                const generatedDate = new Date().toLocaleDateString('en-NG', { year: 'numeric', month: 'long', day: 'numeric' });
+                const bannerStyles = {
+                    eligible: 'bg-emerald-50 border-emerald-300 text-emerald-900',
+                    not_eligible: 'bg-rose-50 border-rose-300 text-rose-900',
+                    pending: 'bg-slate-50 border-slate-300 text-slate-800'
+                };
+                const bannerIcon = {
+                    eligible: 'fa-circle-check text-emerald-600',
+                    not_eligible: 'fa-circle-xmark text-rose-600',
+                    pending: 'fa-clock text-slate-500'
+                };
+
+                const tablesHTML = DEPARTMENTS.map(function (dept) {
+                    const dr = evalData.deptResults[dept.id];
+                    const rowsHTML = dept.courses.map(function (c) {
+                        const score = (student.scores || {})[c.key];
+                        const hasScore = score !== null && score !== undefined && score !== '';
+                        const cls = hasScore ? (Number(score) >= PASS_MARK ? 'text-slate-900' : 'text-rose-600') : 'text-slate-400';
+                        return '<tr>' +
+                            '<td class="py-2 px-4 font-bold text-slate-400 text-xs">' + c.code + '.</td>' +
+                            '<td class="py-2 px-4 font-semibold text-slate-800 text-xs sm:text-sm">' + c.label + '</td>' +
+                            '<td class="py-2 px-4 text-right font-mono font-bold ' + cls + '">' + (hasScore ? score + '%' : '—') + '</td>' +
+                            '</tr>';
+                    }).join('');
+                    return `
+                    <div class="border border-slate-200 rounded-2xl overflow-hidden print-break-avoid">
+                        <div class="${dept.headerBg} text-white px-5 py-3 flex flex-wrap items-center justify-between gap-2">
+                            <h3 class="text-sm font-extrabold tracking-wide flex items-center gap-2"><i class="fa-solid ${dept.icon}"></i> ${dept.name}</h3>
+                            <div class="text-xs font-bold bg-white/15 px-3 py-1 rounded-lg">Dept. Average: ${dr.avg !== null ? dr.avg + '%' : 'Not Yet Available'}</div>
+                        </div>
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                                    <th class="py-2.5 px-4 w-12">Code</th>
+                                    <th class="py-2.5 px-4">Incourse Assessment</th>
+                                    <th class="py-2.5 px-4 text-right w-32">Score (%)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 text-sm">${rowsHTML}</tbody>
+                        </table>
+                    </div>`;
+                }).join('');
+
+                return `
+                <header class="bg-amhs-900 text-white sticky top-0 z-30 no-print">
+                    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+                        <button type="button" id="back-to-admin-btn" class="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-semibold rounded-xl transition flex items-center gap-2">
+                            <i class="fa-solid fa-arrow-left"></i> Back to Admin Roster
+                        </button>
+                        <button type="button" id="preview-print-btn" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs sm:text-sm font-bold rounded-xl shadow-sm transition flex items-center gap-2">
+                            <i class="fa-solid fa-print"></i> Print Official Slip
+                        </button>
+                    </div>
+                </header>
+
+                <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+                    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-5 sm:p-8 print-container">
+                        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pb-6 border-b-2 border-amhs-700">
+                            <div class="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+                                ${getAMHSLogoSVG('w-20 h-20')}
+                                <div>
+                                    <p class="text-xs font-bold uppercase tracking-widest text-amhs-700">Association of Muslim Health Students (AMHS)</p>
+                                    <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-0.5">1st MB Exam Eligibility Statement</h2>
+                                    <p class="text-xs text-slate-500 mt-0.5">Office of the Directorate of Studies &bull; 2026/2027 Academic Session</p>
+                                </div>
+                            </div>
+                            <div class="text-center sm:text-right text-xs text-slate-500 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-200">
+                                <p class="font-bold text-slate-700 uppercase tracking-wider">Date Issued</p>
+                                <p class="font-medium mt-0.5">${escapeHTML(generatedDate)}</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-5 print-break-avoid">
+                            <div class="lg:col-span-5 bg-slate-50 rounded-2xl p-5 border border-slate-200 flex flex-col justify-center">
+                                <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Student Information</div>
+                                <div class="text-lg font-extrabold text-slate-900 mt-1">${escapeHTML(student.name)}</div>
+                                <div class="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-xs">
+                                    <div><span class="text-slate-500">Matric Number:</span><span class="ml-1 font-bold text-slate-900 font-mono">${escapeHTML(student.matric)}</span></div>
+                                    <div><span class="text-slate-500">Incourses Recorded:</span><span class="ml-1 font-bold text-slate-900">${evalData.totalWrittenCount} / ${evalData.totalPossibleCount}</span></div>
+                                </div>
+                            </div>
+                            <div class="lg:col-span-7 rounded-2xl p-5 border-2 ${bannerStyles[evalData.overallStatus]} flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                <div class="flex items-start gap-3.5">
+                                    <i class="fa-solid ${bannerIcon[evalData.overallStatus]} text-3xl mt-0.5"></i>
+                                    <div>
+                                        <div class="text-xs font-bold uppercase tracking-wider opacity-75">Current 1st MB Eligibility Status</div>
+                                        <div class="text-2xl font-extrabold tracking-tight mt-0.5">${evalData.statusLabel}</div>
+                                        <p class="text-xs mt-1 leading-relaxed opacity-90">${escapeHTML(evalData.statusDetail)}</p>
+                                    </div>
+                                </div>
+                                <div class="bg-white/90 px-4 py-3 rounded-xl border border-black/5 text-center shrink-0">
+                                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">Overall Avg</span>
+                                    <span class="text-2xl font-extrabold text-slate-900">${evalData.overallAvg !== null ? evalData.overallAvg + '%' : '—'}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 space-y-6">${tablesHTML}</div>
+                    </div>
+                </main>`;
+            }
+            function renderAdminView() {
+                let eligibleCount = 0;
+                let notEligibleCount = 0;
+                let pendingCount = 0;
+
+                const evaluatedList = state.students.map(function (stu) {
+                    const ev = evaluateStudent(stu);
+                    if (ev.overallStatus === 'eligible') eligibleCount++;
+                    else if (ev.overallStatus === 'not_eligible') notEligibleCount++;
+                    else pendingCount++;
+                    return { student: stu, eval: ev };
+                });
+
+                const q = state.searchQuery.trim().toLowerCase();
+                const filtered = evaluatedList.filter(function (item) {
+                    const matchesSearch = !q || item.student.name.toLowerCase().indexOf(q) !== -1 || item.student.matric.toLowerCase().indexOf(q) !== -1;
+                    const matchesStatus = state.filterStatus === 'all' || item.eval.overallStatus === state.filterStatus;
+                    return matchesSearch && matchesStatus;
+                });
+
+                const totalPages = Math.max(1, Math.ceil(filtered.length / state.pageSize));
+                if (state.currentPage > totalPages) state.currentPage = totalPages;
+                const startIdx = (state.currentPage - 1) * state.pageSize;
+                const pagedItems = filtered.slice(startIdx, startIdx + state.pageSize);
+
+                return `
+                <header class="bg-amhs-900 text-white sticky top-0 z-30 shadow-md no-print">
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-white p-1 rounded-full">${getAMHSLogoSVG('w-10 h-10')}</div>
+                            <div>
+                                <h1 class="text-sm sm:text-base font-extrabold tracking-tight">Directorate of Studies — Admin Backend</h1>
+                                <p class="text-xs text-emerald-200">AMHS 1st MB Eligibility Management (2026/2027)</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button type="button" id="publish-json-btn" class="px-3.5 py-2 ${state.hasUnpublishedChanges ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 animate-pulse' : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950'} text-xs sm:text-sm font-extrabold rounded-xl shadow-sm transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                                <span>Publish (students_data.json)</span>
+                            </button>
+                            <button type="button" id="open-add-student-btn" class="px-3.5 py-2 bg-white/15 hover:bg-white/25 text-white text-xs sm:text-sm font-bold rounded-xl transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-user-plus"></i><span>Add Student</span>
+                            </button>
+                            <a href="index.html" target="_blank" rel="noopener noreferrer" class="px-3 py-2 bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-semibold rounded-xl transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                <span class="hidden lg:inline">Student Page</span>
+                            </a>
+                            <button type="button" id="logout-btn" class="px-3 py-2 bg-rose-600/90 hover:bg-rose-600 text-white text-xs sm:text-sm font-semibold rounded-xl transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-right-from-bracket"></i><span class="hidden sm:inline">Sign Out</span>
+                            </button>
+                        </div>
+                    </div>
+                </header>
+
+                <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
+                    <!-- Publishing Reminder Banner -->
+                    <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div class="flex items-start gap-3">
+                            <i class="fa-solid fa-circle-info text-emerald-700 text-lg mt-0.5"></i>
+                            <div class="text-xs sm:text-sm text-emerald-950">
+                                <strong>How to update students on Netlify:</strong> After adding or updating scores below, click <strong>Publish (students_data.json)</strong> in the top bar, replace <code>students_data.json</code> in your GitHub repository, and push.
+                            </div>
+                        </div>
+                        <button type="button" id="reload-live-json-btn" class="px-3 py-1.5 bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold rounded-lg transition shrink-0">
+                            <i class="fa-solid fa-rotate mr-1"></i> Sync From Live Site
+                        </button>
+                    </div>
+
+                    <!-- KPI Cards -->
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm">
+                            <div class="flex items-center justify-between"><span class="text-xs font-bold uppercase tracking-wider text-slate-400">Total Students</span><span class="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center"><i class="fa-solid fa-users"></i></span></div>
+                            <div class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">${state.students.length}</div>
+                            <p class="text-[11px] text-slate-500 mt-1">Supports 300+ records smoothly</p>
+                        </div>
+                        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-emerald-200 shadow-sm">
+                            <div class="flex items-center justify-between"><span class="text-xs font-bold uppercase tracking-wider text-emerald-700">Eligible (≥45%)</span><span class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center"><i class="fa-solid fa-circle-check"></i></span></div>
+                            <div class="text-2xl sm:text-3xl font-extrabold text-emerald-700 mt-2">${eligibleCount}</div>
+                            <p class="text-[11px] text-slate-500 mt-1">${state.students.length ? Math.round((eligibleCount / state.students.length) * 100) : 0}% of cohort</p>
+                        </div>
+                        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-rose-200 shadow-sm">
+                            <div class="flex items-center justify-between"><span class="text-xs font-bold uppercase tracking-wider text-rose-700">Not Eligible</span><span class="w-9 h-9 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center"><i class="fa-solid fa-circle-xmark"></i></span></div>
+                            <div class="text-2xl sm:text-3xl font-extrabold text-rose-600 mt-2">${notEligibleCount}</div>
+                            <p class="text-[11px] text-slate-500 mt-1">Below 45% in ≥1 department</p>
+                        </div>
+                        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm">
+                            <div class="flex items-center justify-between"><span class="text-xs font-bold uppercase tracking-wider text-slate-500">Pending Scores</span><span class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center"><i class="fa-solid fa-clock"></i></span></div>
+                            <div class="text-2xl sm:text-3xl font-extrabold text-slate-700 mt-2">${pendingCount}</div>
+                            <p class="text-[11px] text-slate-500 mt-1">No incourses uploaded yet</p>
+                        </div>
+                    </div>
+
+                    <!-- Navigation Tabs -->
+                    <div class="bg-white rounded-2xl p-1.5 border border-slate-200 shadow-sm flex flex-wrap gap-1.5">
+                        <button type="button" data-admin-tab="roster" class="admin-tab-btn flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 ${state.adminTab === 'roster' ? 'bg-amhs-700 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'}">
+                            <i class="fa-solid fa-table-list"></i> Student Roster &amp; Results
+                        </button>
+                        <button type="button" data-admin-tab="bulk-score" class="admin-tab-btn flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 ${state.adminTab === 'bulk-score' ? 'bg-amhs-700 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'}">
+                            <i class="fa-solid fa-pen-to-square"></i> Upload Incourse Scores
+                        </button>
+                        <button type="button" data-admin-tab="csv-import" class="admin-tab-btn flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 ${state.adminTab === 'csv-import' ? 'bg-amhs-700 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'}">
+                            <i class="fa-solid fa-file-csv"></i> Bulk CSV Import (300+)
+                        </button>
+                    </div>
+
+                    ${state.adminTab === 'roster' ? renderRosterTab(pagedItems, filtered.length, startIdx, totalPages) : ''}
+                    ${state.adminTab === 'bulk-score' ? renderBulkScoreTab() : ''}
+                    ${state.adminTab === 'csv-import' ? renderCSVTab() : ''}
+                </main>`;
+            }
+
+            function renderRosterTab(pagedItems, totalFiltered, startIdx, totalPages) {
+                const fmtAvg = function (dr) {
+                    if (dr.avg === null) return '<span class="text-slate-400 text-xs">—</span>';
+                    const cls = dr.avg >= PASS_MARK ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-rose-700 bg-rose-50 border-rose-200';
+                    return '<span class="inline-block px-2 py-0.5 rounded-lg text-xs font-bold border ' + cls + '">' + dr.avg + '%</span><div class="text-[10px] text-slate-400 mt-0.5">' + dr.written + '/' + dr.total + '</div>';
+                };
+
+                const rowsHTML = pagedItems.length === 0
+                    ? '<tr><td colspan="9" class="py-12 text-center text-slate-400"><i class="fa-solid fa-folder-open text-3xl mb-2 block"></i>No student records found. Click <strong>Add Student</strong> or upload a CSV to begin.</td></tr>'
+                    : pagedItems.map(function (item, idx) {
+                        const s = item.student;
+                        const ev = item.eval;
+                        return `
+                        <tr class="hover:bg-slate-50/80 transition">
+                            <td class="py-3 px-4 text-xs font-semibold text-slate-400">${startIdx + idx + 1}</td>
+                            <td class="py-3 px-4">
+                                <div class="font-bold text-slate-900">${escapeHTML(s.name)}</div>
+                                <div class="text-xs font-mono text-slate-500">${escapeHTML(s.matric)}</div>
+                            </td>
+                            <td class="py-3 px-4 font-mono text-xs text-slate-600">
+                                ${state.showPasswords ? '<span class="bg-slate-100 px-2 py-1 rounded border border-slate-200">' + escapeHTML(s.password) + '</span>' : '••••••••'}
+                            </td>
+                            <td class="py-3 px-3 text-center">${fmtAvg(ev.deptResults.anatomy)}</td>
+                            <td class="py-3 px-3 text-center">${fmtAvg(ev.deptResults.biochemistry)}</td>
+                            <td class="py-3 px-3 text-center">${fmtAvg(ev.deptResults.physiology)}</td>
+                            <td class="py-3 px-3 text-center font-extrabold text-slate-900">${ev.overallAvg !== null ? ev.overallAvg + '%' : '—'}</td>
+                            <td class="py-3 px-4 text-center">${statusBadgeHTML(ev.overallStatus)}</td>
+                            <td class="py-3 px-4 text-right">
+                                <div class="inline-flex items-center gap-1.5">
+                                    <button type="button" data-preview-id="${escapeHTML(s.id)}" title="Preview & Print Slip" class="preview-student-btn w-8 h-8 rounded-lg bg-slate-100 hover:bg-amhs-100 hover:text-amhs-800 text-slate-600 transition flex items-center justify-center"><i class="fa-solid fa-print text-xs"></i></button>
+                                    <button type="button" data-edit-id="${escapeHTML(s.id)}" title="Edit Student & Scores" class="edit-student-btn px-2.5 py-1.5 rounded-lg bg-amhs-50 hover:bg-amhs-100 text-amhs-800 border border-amhs-200 text-xs font-bold transition flex items-center gap-1"><i class="fa-solid fa-pen"></i> Edit</button>
+                                    <button type="button" data-delete-id="${escapeHTML(s.id)}" title="Delete Student" class="delete-student-btn w-8 h-8 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition flex items-center justify-center"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                                </div>
+                            </td>
+                        </tr>`;
+                    }).join('');
+                    
+                    return `
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="p-4 border-b border-slate-200 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 bg-slate-50/70">
+                        <div class="relative flex-1 max-w-md">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><i class="fa-solid fa-magnifying-glass"></i></span>
+                            <input type="text" id="roster-search-input" value="${escapeHTML(state.searchQuery)}" placeholder="Search by student name or matric number..."
+                                class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amhs-500">
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2.5">
+                            <select id="roster-status-filter" class="px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-amhs-500">
+                                <option value="all" ${state.filterStatus === 'all' ? 'selected' : ''}>All Statuses</option>
+                                <option value="eligible" ${state.filterStatus === 'eligible' ? 'selected' : ''}>Eligible Only</option>
+                                <option value="not_eligible" ${state.filterStatus === 'not_eligible' ? 'selected' : ''}>Not Eligible Only</option>
+                                <option value="pending" ${state.filterStatus === 'pending' ? 'selected' : ''}>Pending Only</option>
+                            </select>
+                            <select id="roster-pagesize-select" class="px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-amhs-500">
+                                <option value="25" ${state.pageSize === 25 ? 'selected' : ''}>25 / page</option>
+                                <option value="50" ${state.pageSize === 50 ? 'selected' : ''}>50 / page</option>
+                                <option value="100" ${state.pageSize === 100 ? 'selected' : ''}>100 / page</option>
+                            </select>
+                            <button type="button" id="toggle-passwords-btn" class="px-3.5 py-2.5 bg-white border border-slate-300 hover:bg-slate-100 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 transition flex items-center gap-1.5">
+                                <i class="fa-solid ${state.showPasswords ? 'fa-eye-slash' : 'fa-eye'}"></i>
+                                <span>${state.showPasswords ? 'Hide' : 'Show'} Passwords</span>
+                            </button>
+                            <button type="button" id="export-csv-btn" class="px-3.5 py-2.5 bg-amhs-50 border border-amhs-200 hover:bg-amhs-100 rounded-xl text-xs sm:text-sm font-semibold text-amhs-800 transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-file-export"></i><span>Export CSV</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse min-w-[900px]">
+                            <thead>
+                                <tr class="bg-slate-100/80 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                                    <th class="py-3 px-4 w-12">#</th>
+                                    <th class="py-3 px-4">Student Name &amp; Matric</th>
+                                    <th class="py-3 px-4">Password</th>
+                                    <th class="py-3 px-3 text-center">Anatomy Avg</th>
+                                    <th class="py-3 px-3 text-center">Biochem Avg</th>
+                                    <th class="py-3 px-3 text-center">Physiology Avg</th>
+                                    <th class="py-3 px-3 text-center">Overall Avg</th>
+                                    <th class="py-3 px-4 text-center">Eligibility Status</th>
+                                    <th class="py-3 px-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 text-sm">${rowsHTML}</tbody>
+                        </table>
+                    </div>
+
+                    <div class="px-4 py-3 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+                        <div>Showing <strong>${totalFiltered === 0 ? 0 : startIdx + 1}</strong> to <strong>${Math.min(startIdx + state.pageSize, totalFiltered)}</strong> of <strong>${totalFiltered}</strong> students</div>
+                        <div class="flex items-center gap-2">
+                            <button type="button" id="prev-page-btn" ${state.currentPage <= 1 ? 'disabled' : ''} class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 disabled:opacity-40 font-semibold transition"><i class="fa-solid fa-chevron-left mr-1"></i> Prev</button>
+                            <span class="px-2 font-bold text-slate-800">Page ${state.currentPage} of ${totalPages}</span>
+                            <button type="button" id="next-page-btn" ${state.currentPage >= totalPages ? 'disabled' : ''} class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 disabled:opacity-40 font-semibold transition">Next <i class="fa-solid fa-chevron-right ml-1"></i></button>
+                        </div>
+                    </div>
+                </div>`;
+            }
+
+            function renderBulkScoreTab() {
+                const selectedDeptObj = DEPARTMENTS.find(function (d) { return d.id === state.bulkSelectedDept; }) || DEPARTMENTS[0];
+                if (!selectedDeptObj.courses.some(function (c) { return c.key === state.bulkSelectedCourse; })) {
+                    state.bulkSelectedCourse = selectedDeptObj.courses[0].key;
+                }
+                const selectedCourseObj = selectedDeptObj.courses.find(function (c) { return c.key === state.bulkSelectedCourse; });
+                const bq = state.bulkSearchQuery.trim().toLowerCase();
+                const matched = state.students.filter(function (s) {
+                    return !bq || s.name.toLowerCase().indexOf(bq) !== -1 || s.matric.toLowerCase().indexOf(bq) !== -1;
+                });
+
+                const bulkPageSize = 50;
+                const totalPages = Math.max(1, Math.ceil(matched.length / bulkPageSize));
+                if (state.bulkPage > totalPages) state.bulkPage = totalPages;
+                const startIdx = (state.bulkPage - 1) * bulkPageSize;
+                const visibleStudents = matched.slice(startIdx, startIdx + bulkPageSize);
+
+                const rowsHTML = visibleStudents.map(function (s, idx) {
+                    const currentVal = (s.scores || {})[state.bulkSelectedCourse];
+                    const ev = evaluateStudent(s);
+                    return `
+                    <tr class="hover:bg-slate-50/70">
+                        <td class="py-2.5 px-4 text-xs text-slate-400 font-semibold">${startIdx + idx + 1}</td>
+                        <td class="py-2.5 px-4 font-mono text-xs font-bold text-slate-700">${escapeHTML(s.matric)}</td>
+                        <td class="py-2.5 px-4 font-semibold text-slate-900">${escapeHTML(s.name)}</td>
+                        <td class="py-2.5 px-4">
+                            <input type="number" min="0" max="100" step="0.5"
+                                data-bulk-student-id="${escapeHTML(s.id)}"
+                                value="${currentVal !== null && currentVal !== undefined ? currentVal : ''}"
+                                placeholder="Blank = Unwritten"
+                                class="bulk-score-input w-full px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-sm font-mono font-bold focus:outline-none focus:ring-2 focus:ring-amhs-500 focus:bg-white">
+                        </td>
+                        <td class="py-2.5 px-4 text-center">${statusBadgeHTML(ev.overallStatus)}</td>
+                    </tr>`;
+                }).join('');
+
+                return `
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="p-5 border-b border-slate-200 bg-slate-50/70 space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div>
+                                <h2 class="text-lg font-extrabold text-slate-900">Quick Incourse Score Upload</h2>
+                                <p class="text-xs text-slate-500 mt-0.5">Select a department and incourse exam to rapidly enter or update scores across the class.</p>
+                            </div>
+                            <button type="button" id="save-bulk-scores-btn" class="px-5 py-2.5 bg-amhs-700 hover:bg-amhs-800 text-white text-sm font-bold rounded-xl shadow-sm transition flex items-center justify-center gap-2 shrink-0">
+                                <i class="fa-solid fa-floppy-disk"></i> Save Visible Scores
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">1. Select Department</label>
+                                <select id="bulk-dept-select" class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amhs-500">
+                                    ${DEPARTMENTS.map(function (d) { return '<option value="' + d.id + '" ' + (d.id === state.bulkSelectedDept ? 'selected' : '') + '>' + d.name + '</option>'; }).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">2. Select Incourse Exam</label>
+                                <select id="bulk-course-select" class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amhs-500">
+                                    ${selectedDeptObj.courses.map(function (c) { return '<option value="' + c.key + '" ' + (c.key === state.bulkSelectedCourse ? 'selected' : '') + '>' + c.code + '. ' + c.label + '</option>'; }).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">3. Filter Student</label>
+                                <input type="text" id="bulk-search-input" value="${escapeHTML(state.bulkSearchQuery)}" placeholder="Filter by name or matric..."
+                                    class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amhs-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100/80 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                                    <th class="py-3 px-4 w-12">#</th>
+                                    <th class="py-3 px-4">Matric Number</th>
+                                    <th class="py-3 px-4">Student Name</th>
+                                    <th class="py-3 px-4 w-48">${selectedCourseObj.label} (%)</th>
+                                    <th class="py-3 px-4 text-center">Current Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 text-sm">${rowsHTML}</tbody>
+                        </table>
+                    </div>
+
+                    <div class="px-4 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-600">
+                        <span>Showing ${matched.length === 0 ? 0 : startIdx + 1} – ${Math.min(startIdx + bulkPageSize, matched.length)} of ${matched.length} students</span>
+                        <div class="flex items-center gap-2">
+                            <button type="button" id="bulk-prev-page-btn" ${state.bulkPage <= 1 ? 'disabled' : ''} class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 disabled:opacity-40 font-semibold">Prev</button>
+                            <span class="font-bold">Page ${state.bulkPage} / ${totalPages}</span>
+                            <button type="button" id="bulk-next-page-btn" ${state.bulkPage >= totalPages ? 'disabled' : ''} class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 disabled:opacity-40 font-semibold">Next</button>
+                        </div>
+                    </div>
+                </div>`;
+            }
+            function renderCSVTab() {
+                return `
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
+                        <div class="flex items-start gap-3.5">
+                            <div class="w-11 h-11 rounded-xl bg-amhs-100 text-amhs-700 flex items-center justify-center shrink-0"><i class="fa-solid fa-file-arrow-up text-xl"></i></div>
+                            <div>
+                                <h2 class="text-lg font-extrabold text-slate-900">Bulk CSV Upload (300+ Students)</h2>
+                                <p class="text-xs text-slate-500 mt-1 leading-relaxed">Upload a CSV from Excel or Google Sheets containing student credentials and incourse scores. Blank cells are ignored so previously uploaded scores remain intact.</p>
+                            </div>
+                        </div>
+                        <div class="p-5 border-2 border-dashed border-amhs-300 bg-amhs-50/40 rounded-2xl text-center space-y-3">
+                            <i class="fa-solid fa-cloud-arrow-up text-3xl text-amhs-600"></i>
+                            <div class="text-sm font-semibold text-slate-700">Select your CSV spreadsheet file</div>
+                            <input type="file" id="csv-file-input" accept=".csv,text/csv" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-amhs-700 file:text-white hover:file:bg-amhs-800 cursor-pointer mx-auto max-w-xs">
+                        </div>
+                        <div class="flex flex-wrap gap-3">
+                            <button type="button" id="download-template-btn" class="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs sm:text-sm font-bold rounded-xl transition flex items-center justify-center gap-2"><i class="fa-solid fa-download"></i> Download CSV Template</button>
+                            <button type="button" id="export-csv-btn-2" class="flex-1 py-2.5 px-4 bg-amhs-50 hover:bg-amhs-100 text-amhs-800 border border-amhs-200 text-xs sm:text-sm font-bold rounded-xl transition flex items-center justify-center gap-2"><i class="fa-solid fa-file-csv"></i> Export Master Sheet</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
+                        <div class="flex items-start gap-3.5">
+                            <div class="w-11 h-11 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0"><i class="fa-solid fa-server text-xl"></i></div>
+                            <div>
+                                <h2 class="text-lg font-extrabold text-slate-900">300+ Student Capacity &amp; Settings</h2>
+                                <p class="text-xs text-slate-500 mt-1 leading-relaxed">Test the portal with 300 realistic pre-clinical student records or update the Admin Passcode on this device.</p>
+                            </div>
+                        </div>
+                        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div>
+                                <div class="text-sm font-bold text-slate-900">Populate 300 Sample Students</div>
+                                <div class="text-xs text-slate-500">Adds mock students (2023/1001 – 2023/1300) to test at full scale.</div>
+                            </div>
+                            <button type="button" id="generate-300-btn" class="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition shrink-0"><i class="fa-solid fa-bolt mr-1"></i> Load 300 Students</button>
+                        </div>
+                        <form id="change-passcode-form" class="pt-2 border-t border-slate-200 space-y-3">
+                            <label for="new-admin-passcode" class="block text-xs font-bold uppercase tracking-wider text-slate-600">Update Admin Passcode (This Browser)</label>
+                            <div class="flex gap-2">
+                                <input type="text" id="new-admin-passcode" value="${escapeHTML(state.adminPasscode)}" required
+                                    class="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-amhs-500">
+                                <button type="submit" class="px-4 py-2.5 bg-amhs-700 hover:bg-amhs-800 text-white text-xs sm:text-sm font-bold rounded-xl transition">Update</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>`;
+            }
+
+            // =========================================================================
+            // 7. STUDENT EDITOR MODAL LOGIC
+            // =========================================================================
+            function openStudentEditorModal(studentId) {
+                const modal = document.getElementById('student-editor-modal');
+                const existing = studentId ? state.students.find(function (s) { return s.id === studentId; }) : null;
+                document.getElementById('editor-modal-title').textContent = existing ? ('Edit Student: ' + existing.matric) : 'Add New Student & Upload Results';
+                document.getElementById('edit-student-id').value = existing ? existing.id : '';
+                document.getElementById('edit-name').value = existing ? existing.name : '';
+                document.getElementById('edit-matric').value = existing ? existing.matric : '';
+                document.getElementById('edit-password').value = existing ? existing.password : '';
+
+                document.getElementById('editor-courses-container').innerHTML = DEPARTMENTS.map(function (dept) {
+                    const fieldsHTML = dept.courses.map(function (c) {
+                        const val = existing && existing.scores && existing.scores[c.key] !== null && existing.scores[c.key] !== undefined
+                            ? existing.scores[c.key]
+                            : '';
+                        return '<div class="flex items-center justify-between gap-3 p-2.5 bg-slate-50 rounded-xl border border-slate-200/80">' +
+                            '<label for="score_' + c.key + '" class="text-xs font-semibold text-slate-700 leading-tight flex-1">' +
+                            '<span class="text-slate-400 font-bold mr-1">' + c.code + '.</span> ' + c.label +
+                            '</label>' +
+                            '<input type="number" id="score_' + c.key + '" name="' + c.key + '" min="0" max="100" step="0.5" value="' + val + '" placeholder="—" ' +
+                            'class="w-20 px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-sm font-mono font-bold text-right focus:outline-none focus:ring-2 focus:ring-amhs-500">' +
+                            '</div>';
+                    }).join('');
+
+                    return '<div class="border border-slate-200 rounded-2xl overflow-hidden">' +
+                        '<div class="' + dept.headerBg + ' text-white px-4 py-2.5 flex items-center justify-between">' +
+                        '<span class="text-xs font-extrabold tracking-wide flex items-center gap-2"><i class="fa-solid ' + dept.icon + '"></i> ' + dept.name + '</span>' +
+                        '<span class="text-[11px] text-white/80">' + dept.subtitle + '</span>' +
+                        '</div>' +
+                        '<div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 bg-white">' + fieldsHTML + '</div>' +
+                        '</div>';
+                }).join('');
+
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+
+            function closeStudentEditorModal() {
+                const modal = document.getElementById('student-editor-modal');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+
+            document.getElementById('close-editor-modal-btn').addEventListener('click', closeStudentEditorModal);
+            document.getElementById('cancel-editor-modal-btn').addEventListener('click', closeStudentEditorModal);
+            document.getElementById('generate-pwd-btn').addEventListener('click', function () {
+                const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+                let pwd = 'AMHS';
+                for (let i = 0; i < 4; i++) pwd += chars[Math.floor(Math.random() * chars.length)];
+                document.getElementById('edit-password').value = pwd;
+            });
+document.getElementById('student-editor-form').addEventListener('submit', function (e) {
+                e.preventDefault();
+                const editId = document.getElementById('edit-student-id').value.trim();
+                const name = document.getElementById('edit-name').value.trim();
+                const matric = document.getElementById('edit-matric').value.trim().toUpperCase();
+                const password = document.getElementById('edit-password').value.trim();
+
+                if (!name || !matric || !password) {
+                    showToast('Please fill in Name, Matric Number, and Password.', 'error');
+                    return;
+                }
+
+                const duplicate = state.students.find(function (s) {
+                    return s.matric.toUpperCase() === matric && s.id !== editId;
+                });
+                if (duplicate) {
+                    showToast('A student with Matric Number ' + matric + ' already exists.', 'error');
+                    return;
+                }
+
+                const scores = createEmptyScores();
+                ALL_COURSES.forEach(function (c) {
+                    const input = document.getElementById('score_' + c.key);
+                    scores[c.key] = input ? parseScoreValue(input.value) : null;
+                });
+
+                const newDocId = sanitizeDocId(matric);
+                const today = new Date().toISOString().split('T')[0];
+                const savedRecord = { id: newDocId, name: name, matric: matric, password: password, scores: scores, updatedAt: today };
+
+                if (editId) {
+                    state.students = state.students.filter(function (s) { return s.id !== editId; });
+                    state.students.push(savedRecord);
+                    showToast('Updated ' + name + ' (' + matric + ').', 'success');
+                } else {
+                    state.students.push(savedRecord);
+                    showToast('Added ' + name + ' (' + matric + ').', 'success');
+                }
+
+                state.students.sort(function (a, b) { return a.matric.localeCompare(b.matric); });
+                saveDraftToLocal(true);
+                closeStudentEditorModal();
+                render();
+            });
+
+            // =========================================================================
+            // 8. EVENT BINDING & RENDER
+            // =========================================================================
+            function bindEvents() {
+                const adminLoginForm = document.getElementById('admin-login-form');
+                if (adminLoginForm) {
+                    adminLoginForm.onsubmit = function (e) {
+                        e.preventDefault();
+                        const code = document.getElementById('admin-passcode-input').value.trim();
+                        if (code !== state.adminPasscode) {
+                            showToast('Incorrect Admin Passcode.', 'error');
+                            return;
+                        }
+                        state.isAdminAuthenticated = true;
+                        state.view = 'admin';
+                        showToast('Signed in to Directorate Admin Backend.', 'success');
+                        render();
+                    };
+                }
+
+                const publishBtn = document.getElementById('publish-json-btn');
+                if (publishBtn) publishBtn.onclick = downloadPublishJSON;
+
+                const reloadLiveBtn = document.getElementById('reload-live-json-btn');
+                if (reloadLiveBtn) {
+                    reloadLiveBtn.onclick = function () {
+                        showConfirmModal({
+                            title: 'Sync From Live Site',
+                            message: 'This will replace your current local draft with the live students_data.json file currently hosted on your site. Continue?',
+                            confirmText: 'Sync Now',
+                            icon: 'fa-rotate',
+                            onConfirm: function () { loadInitialData(true); }
+                        });
+                    };
+                }
+
+                const logoutBtn = document.getElementById('logout-btn');
+                if (logoutBtn) {
+                    logoutBtn.onclick = function () {
+                        state.isAdminAuthenticated = false;
+                        state.view = 'admin-login';
+                        render();
+                    };
+                }
+
+                const backToAdminBtn = document.getElementById('back-to-admin-btn');
+                if (backToAdminBtn) {
+                    backToAdminBtn.onclick = function () {
+                        state.previewStudentId = null;
+                        state.view = 'admin';
+                        render();
+                    };
+                }
+
+                const previewPrintBtn = document.getElementById('preview-print-btn');
+                if (previewPrintBtn) previewPrintBtn.onclick = function () { window.print(); };
+
+                const addBtn = document.getElementById('open-add-student-btn');
+                if (addBtn) addBtn.onclick = function () { openStudentEditorModal(null); };
+
+                const exportBtn = document.getElementById('export-csv-btn');
+                if (exportBtn) exportBtn.onclick = exportMasterReportCSV;
+
+                const exportBtn2 = document.getElementById('export-csv-btn-2');
+                if (exportBtn2) exportBtn2.onclick = exportMasterReportCSV;
+
+                document.querySelectorAll('.admin-tab-btn').forEach(function (btn) {
+                    btn.onclick = function () {
+                        state.adminTab = btn.dataset.adminTab;
+                        render();
+                    };
+                });
+
+                const rosterSearch = document.getElementById('roster-search-input');
+                if (rosterSearch) {
+                    rosterSearch.oninput = function (e) {
+                        state.searchQuery = e.target.value;
+                        state.currentPage = 1;
+                        render();
+                        const el = document.getElementById('roster-search-input');
+                        if (el) {
+                            el.focus();
+                            el.setSelectionRange(el.value.length, el.value.length);
+                        }
+                    };
+                }
+
+                const statusFilter = document.getElementById('roster-status-filter');
+                if (statusFilter) {
+                    statusFilter.onchange = function (e) {
+                        state.filterStatus = e.target.value;
+                        state.currentPage = 1;
+                        render();
+                    };
+                }
+
+                const pageSizeSelect = document.getElementById('roster-pagesize-select');
+                if (pageSizeSelect) {
+                    pageSizeSelect.onchange = function (e) {
+                        state.pageSize = Number(e.target.value);
+                        state.currentPage = 1;
+                        render();
+                    };
+                }
+
+                const togglePwdBtn = document.getElementById('toggle-passwords-btn');
+                if (togglePwdBtn) {
+                    togglePwdBtn.onclick = function () {
+                        state.showPasswords = !state.showPasswords;
+                        render();
+                    };
+                }
+
+                const prevBtn = document.getElementById('prev-page-btn');
+                if (prevBtn) prevBtn.onclick = function () { if (state.currentPage > 1) { state.currentPage--; render(); } };
+
+                const nextBtn = document.getElementById('next-page-btn');
+                if (nextBtn) nextBtn.onclick = function () { state.currentPage++; render(); };
+
+                document.querySelectorAll('.edit-student-btn').forEach(function (btn) {
+                    btn.onclick = function () { openStudentEditorModal(btn.dataset.editId); };
+                });
+
+                document.querySelectorAll('.preview-student-btn').forEach(function (btn) {
+                    btn.onclick = function () {
+                        state.previewStudentId = btn.dataset.previewId;
+                        state.view = 'preview';
+                        render();
+                    };
+                });
+                document.querySelectorAll('.delete-student-btn').forEach(function (btn) {
+                    btn.onclick = function () {
+                        const target = state.students.find(function (s) { return s.id === btn.dataset.deleteId; });
+                        if (!target) return;
+                        showConfirmModal({
+                            title: 'Delete Student Record',
+                            message: 'Permanently remove ' + target.name + ' (' + target.matric + ') and all their incourse scores?',
+                            confirmText: 'Delete Record',
+                            confirmClass: 'bg-rose-600 hover:bg-rose-700',
+                            icon: 'fa-trash-can',
+                            onConfirm: function () {
+                                state.students = state.students.filter(function (s) { return s.id !== target.id; });
+                                saveDraftToLocal(true);
+                                showToast('Deleted ' + target.name + ' (' + target.matric + ').', 'info');
+                                render();
+                            }
+                        });
+                    };
+                });
+
+                const bulkDept = document.getElementById('bulk-dept-select');
+                if (bulkDept) {
+                    bulkDept.onchange = function (e) {
+                        state.bulkSelectedDept = e.target.value;
+                        const d = DEPARTMENTS.find(function (dep) { return dep.id === state.bulkSelectedDept; });
+                        if (d) state.bulkSelectedCourse = d.courses[0].key;
+                        state.bulkPage = 1;
+                        render();
+                    };
+                }
+
+                const bulkCourse = document.getElementById('bulk-course-select');
+                if (bulkCourse) {
+                    bulkCourse.onchange = function (e) {
+                        state.bulkSelectedCourse = e.target.value;
+                        render();
+                    };
+                }
+
+                const bulkSearch = document.getElementById('bulk-search-input');
+                if (bulkSearch) {
+                    bulkSearch.oninput = function (e) {
+                        state.bulkSearchQuery = e.target.value;
+                        state.bulkPage = 1;
+                        render();
+                        const el = document.getElementById('bulk-search-input');
+                        if (el) {
+                            el.focus();
+                            el.setSelectionRange(el.value.length, el.value.length);
+                        }
+                    };
+                }
+
+                const saveBulkBtn = document.getElementById('save-bulk-scores-btn');
+                if (saveBulkBtn) {
+                    saveBulkBtn.onclick = function () {
+                        const inputs = document.querySelectorAll('.bulk-score-input');
+                        let count = 0;
+                        const today = new Date().toISOString().split('T')[0];
+                        inputs.forEach(function (inp) {
+                            const stu = state.students.find(function (s) { return s.id === inp.dataset.bulkStudentId; });
+                            if (stu) {
+                                stu.scores[state.bulkSelectedCourse] = parseScoreValue(inp.value);
+                                stu.updatedAt = today;
+                                count++;
+                            }
+                        });
+                        saveDraftToLocal(true);
+                        showToast('Saved scores for ' + count + ' students. Click Publish JSON to go live!', 'success');
+                        render();
+                    };
+                }
+
+                const bulkPrev = document.getElementById('bulk-prev-page-btn');
+                if (bulkPrev) bulkPrev.onclick = function () { if (state.bulkPage > 1) { state.bulkPage--; render(); } };
+
+                const bulkNext = document.getElementById('bulk-next-page-btn');
+                if (bulkNext) bulkNext.onclick = function () { state.bulkPage++; render(); };
+
+                const downloadTplBtn = document.getElementById('download-template-btn');
+                if (downloadTplBtn) downloadTplBtn.onclick = downloadTemplateCSV;
+
+                const csvInput = document.getElementById('csv-file-input');
+                if (csvInput) {
+                    csvInput.onchange = function (e) {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        const reader = new FileReader();
+                        reader.onload = function (ev) {
+                            processCSVUpload(ev.target.result);
+                            e.target.value = '';
+                        };
+                        reader.readAsText(file);
+                    };
+                }
+
+                const gen300Btn = document.getElementById('generate-300-btn');
+                if (gen300Btn) {
+                    gen300Btn.onclick = function () {
+                        showConfirmModal({
+                            title: 'Populate 300 Sample Students',
+                            message: 'Add 300 realistic pre-clinical student records (2023/1001 – 2023/1300) to test search, pagination, and bulk uploads?',
+                            confirmText: 'Load 300 Students',
+                            icon: 'fa-users',
+                            onConfirm: generate300DemoStudents
+                        });
+                    };
+                }
+
+                const changePassForm = document.getElementById('change-passcode-form');
+                if (changePassForm) {
+                    changePassForm.onsubmit = function (e) {
+                        e.preventDefault();
+                        const newCode = document.getElementById('new-admin-passcode').value.trim();
+                        if (newCode.length < 4) {
+                            showToast('Passcode must be at least 4 characters.', 'error');
+                            return;
+                        }
+                        state.adminPasscode = newCode;
+                        localStorage.setItem(LOCAL_PASSCODE_KEY, newCode);
+                        showToast('Admin passcode updated for this browser.', 'success');
+                    };
+                }
+            }
+
+            function render() {
+                const app = document.getElementById('app');
+                if (state.view === 'admin-login') app.innerHTML = renderAdminLoginView();
+                else if (state.view === 'preview') app.innerHTML = renderStudentPreviewView();
+                else app.innerHTML = renderAdminView();
+
+                updateFooterCount();
+                updatePublishBadge();
+                bindEvents();
+            }
+
+            loadInitialData(false);
+        })();
+    </script>
+</body>
+</html>
