@@ -1,30 +1,30 @@
 [
   {
-    "id": "STU_2023_1001",
-    "name": "ABDULLAHI, Ridwan Olamide",
-    "matric": "2023/1001",
-    "password": "AMHS1001",
+    "id": "STU_2021000135",
+    "name": "Aremu Enoch",
+    "matric": "2021000135",
+    "password": "AMHS01",
     "scores": {
-      "ana_limbs": 58,
-      "ana_thorax": 62,
-      "ana_abdomen": 54,
-      "ana_pelvis": null,
+      "ana_limbs": 65,
+      "ana_thorax": 47,
+      "ana_abdomen": 89,
+      "ana_pelvis": 59,
       "ana_head_neck": null,
       "ana_neuro": null,
-      "ana_gen_histo": 65,
-      "ana_sys_histo": null,
-      "bch_first": 52,
-      "bch_second": 60,
-      "bch_third": null,
+      "ana_gen_histo": 85,
+      "ana_sys_histo": 54,
+      "bch_first": 87,
+      "bch_second": 78,
+      "bch_third": 85,
       "bch_fourth": null,
-      "bch_ospe": 68,
-      "phy_gen_nm": 61,
-      "phy_blood_cvs": 55,
-      "phy_resp_renal": 59,
+      "bch_ospe": null,
+      "phy_gen_nm": 58,
+      "phy_blood_cvs": 60,
+      "phy_resp_renal": null,
       "phy_git": null,
       "phy_endo_repro": null,
       "phy_neuro": null
     },
-    "updatedAt": "2026-11-23"
+    "updatedAt": "2026-11-24"
   }
 ]
