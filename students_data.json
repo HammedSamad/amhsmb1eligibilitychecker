@@ -1,1 +1,30 @@
-[]
+[
+  {
+    "id": "STU_001",
+    "name": "Rasheed Rasheed",
+    "matric": "001",
+    "password": "amhs01",
+    "scores": {
+      "ana_limbs": 89,
+      "ana_thorax": 75,
+      "ana_abdomen": 49,
+      "ana_pelvis": 58,
+      "ana_head_neck": null,
+      "ana_neuro": null,
+      "ana_gen_histo": 69,
+      "ana_sys_histo": 75,
+      "bch_first": 74,
+      "bch_second": 80,
+      "bch_third": 85,
+      "bch_fourth": null,
+      "bch_ospe": null,
+      "phy_gen_nm": 56,
+      "phy_blood_cvs": 54,
+      "phy_resp_renal": null,
+      "phy_git": 47,
+      "phy_endo_repro": null,
+      "phy_neuro": null
+    },
+    "updatedAt": "2026-11-28"
+  }
+]
