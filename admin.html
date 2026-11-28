@@ -237,21 +237,30 @@
     <!-- ==================== MAIN APPLICATION ROOT ==================== -->
     <div id="app" class="flex-1 flex flex-col"></div>
 
-    <!-- ==================== REQUIRED GLOBAL FOOTER ==================== -->
-    <footer class="w-full bg-white border-t border-slate-200 py-4 px-4 mt-auto">
-        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
-            <div class="flex items-center justify-center sm:justify-start gap-2 text-xs sm:text-sm font-semibold text-amhs-800">
-                <i class="fa-solid fa-graduation-cap text-amhs-600"></i>
-                <span>Powered by the Office of the Directorate of Studies, AMHS, 2026/2027.</span>
+    <!-- ==================== REQUIRED GLOBAL FOOTER & DISCLAIMER ==================== -->
+    <footer class="w-full bg-white border-t border-slate-200 py-4 px-4 mt-auto print-break-avoid">
+        <div class="max-w-7xl mx-auto space-y-3">
+            <!-- Official Disclaimer (Visible on All Pages & Printed Result Slip Footnote) -->
+            <div class="bg-amber-50/80 border border-amber-200 rounded-xl px-3.5 py-2.5 text-[11px] sm:text-xs text-slate-700 leading-relaxed text-center sm:text-left">
+                <span class="font-bold text-amber-900 uppercase tracking-wide"><i class="fa-solid fa-circle-info text-amber-600 mr-1"></i> Disclaimer:</span>
+                This 1st MB Eligibility Portal, created by the Office of the Directorate of Studies, AMHS, is <strong>not</strong> the final official decision of the school regarding any student's eligibility for the 1st Medical Board (MB) Examination. It is provided solely to help students track their incourse results, calculate their aggregates, and monitor their current 1st MB eligibility status.
             </div>
-            <div class="flex flex-wrap items-center justify-center gap-3 text-xs text-slate-400 no-print">
-                <span id="publish-status-badge" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500 font-semibold">
-                    <span class="w-2 h-2 rounded-full bg-slate-400"></span> Checking Sync...
-                </span>
-                <span id="footer-record-count">0 Student Records</span>
+            <!-- Required Footnote & Sync Status -->
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left pt-1">
+                <div class="flex items-center justify-center sm:justify-start gap-2 text-xs sm:text-sm font-semibold text-amhs-800">
+                    <i class="fa-solid fa-graduation-cap text-amhs-600"></i>
+                    <span>Powered by the Office of the Directorate of Studies, AMHS, 2026/2027.</span>
+                </div>
+                <div class="flex flex-wrap items-center justify-center gap-3 text-xs text-slate-400 no-print">
+                    <span id="publish-status-badge" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500 font-semibold">
+                        <span class="w-2 h-2 rounded-full bg-slate-400"></span> Checking Sync...
+                    </span>
+                    <span id="footer-record-count">0 Student Records</span>
+                </div>
             </div>
         </div>
     </footer>
+
 
     <script>
         (function () {
