@@ -1338,29 +1338,30 @@
                     </div>
                     `}
 
-                    <!-- KPI Cards -->
+                                        <!-- KPI Cards (Clickable Quick Filters) -->
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm">
-                            <div class="flex items-center justify-between"><span class="text-xs font-bold uppercase tracking-wider text-slate-400">Total Students</span><span class="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center"><i class="fa-solid fa-users"></i></span></div>
+                        <button type="button" data-kpi-filter="all" class="kpi-filter-card text-left w-full bg-white rounded-2xl p-4 sm:p-5 border ${state.adminTab === 'roster' && state.filterStatus === 'all' ? 'border-slate-800 ring-2 ring-slate-800/20' : 'border-slate-200 hover:border-slate-400'} shadow-sm hover:shadow-md transition cursor-pointer">
+                            <div class="flex items-center justify-between"><span class="text-xs font-bold uppercase tracking-wider text-slate-500">Total Students</span><span class="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center"><i class="fa-solid fa-users"></i></span></div>
                             <div class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">${state.students.length}</div>
-                            <p class="text-[11px] text-slate-500 mt-1">Supports 300+ records smoothly</p>
-                        </div>
-                        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-emerald-200 shadow-sm">
+                            <p class="text-[11px] text-slate-500 mt-1 flex items-center justify-between"><span>View all records</span><i class="fa-solid fa-arrow-right text-[10px]"></i></p>
+                        </button>
+                        <button type="button" data-kpi-filter="eligible" class="kpi-filter-card text-left w-full bg-white rounded-2xl p-4 sm:p-5 border ${state.adminTab === 'roster' && state.filterStatus === 'eligible' ? 'border-emerald-600 ring-2 ring-emerald-500/25' : 'border-emerald-200 hover:border-emerald-400'} shadow-sm hover:shadow-md transition cursor-pointer">
                             <div class="flex items-center justify-between"><span class="text-xs font-bold uppercase tracking-wider text-emerald-700">Eligible (≥45%)</span><span class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center"><i class="fa-solid fa-circle-check"></i></span></div>
                             <div class="text-2xl sm:text-3xl font-extrabold text-emerald-700 mt-2">${eligibleCount}</div>
-                            <p class="text-[11px] text-slate-500 mt-1">${state.students.length ? Math.round((eligibleCount / state.students.length) * 100) : 0}% of cohort</p>
-                        </div>
-                        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-rose-200 shadow-sm">
+                            <p class="text-[11px] text-emerald-700/80 mt-1 flex items-center justify-between"><span>${state.students.length ? Math.round((eligibleCount / state.students.length) * 100) : 0}% of cohort</span><i class="fa-solid fa-arrow-right text-[10px]"></i></p>
+                        </button>
+                        <button type="button" data-kpi-filter="not_eligible" class="kpi-filter-card text-left w-full bg-white rounded-2xl p-4 sm:p-5 border ${state.adminTab === 'roster' && state.filterStatus === 'not_eligible' ? 'border-rose-600 ring-2 ring-rose-500/25' : 'border-rose-200 hover:border-rose-400'} shadow-sm hover:shadow-md transition cursor-pointer">
                             <div class="flex items-center justify-between"><span class="text-xs font-bold uppercase tracking-wider text-rose-700">Not Eligible</span><span class="w-9 h-9 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center"><i class="fa-solid fa-circle-xmark"></i></span></div>
                             <div class="text-2xl sm:text-3xl font-extrabold text-rose-600 mt-2">${notEligibleCount}</div>
-                            <p class="text-[11px] text-slate-500 mt-1">Below 45% in ≥1 department</p>
-                        </div>
-                        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm">
+                            <p class="text-[11px] text-rose-700/80 mt-1 flex items-center justify-between"><span>Below 45% in ≥1 dept</span><i class="fa-solid fa-arrow-right text-[10px]"></i></p>
+                        </button>
+                        <button type="button" data-kpi-filter="pending" class="kpi-filter-card text-left w-full bg-white rounded-2xl p-4 sm:p-5 border ${state.adminTab === 'roster' && state.filterStatus === 'pending' ? 'border-amber-500 ring-2 ring-amber-400/30' : 'border-slate-200 hover:border-amber-400'} shadow-sm hover:shadow-md transition cursor-pointer">
                             <div class="flex items-center justify-between"><span class="text-xs font-bold uppercase tracking-wider text-slate-500">Pending Scores</span><span class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center"><i class="fa-solid fa-clock"></i></span></div>
                             <div class="text-2xl sm:text-3xl font-extrabold text-slate-700 mt-2">${pendingCount}</div>
-                            <p class="text-[11px] text-slate-500 mt-1">No incourses uploaded yet</p>
-                        </div>
+                            <p class="text-[11px] text-slate-500 mt-1 flex items-center justify-between"><span>No scores uploaded yet</span><i class="fa-solid fa-arrow-right text-[10px]"></i></p>
+                        </button>
                     </div>
+
 
                     <!-- Navigation Tabs -->
                     <div class="bg-white rounded-2xl p-1.5 border border-slate-200 shadow-sm flex flex-wrap gap-1.5">
@@ -1790,6 +1791,21 @@
                         render();
                     };
                 });
+                
+                                document.querySelectorAll('.kpi-filter-card').forEach(function (card) {
+                    card.onclick = function () {
+                        state.adminTab = 'roster';
+                        state.filterStatus = card.dataset.kpiFilter;
+                        state.currentPage = 1;
+                        render();
+                        const filterEl = document.getElementById('roster-status-filter');
+                        if (filterEl) {
+                            const section = filterEl.closest('.bg-white') || filterEl;
+                            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    };
+                });
+
                 const rosterSearch = document.getElementById('roster-search-input');
                 if (rosterSearch) {
                     rosterSearch.oninput = function (e) {
